@@ -1,0 +1,56 @@
+<div class="table-responsive">
+  <table class="standings-table">
+    <thead>
+      <tr>
+        <th class="pos-col"></th>
+        <th class="team-col-header text-start"></th>
+        @if (showGroupColumn) {
+        <th class="stat-col">Grupo</th>
+        }
+        <th class="stat-col" title="Partidos Jugados">PJ</th>
+        <th class="stat-col text-success" title="Victorias">V{{ isAdjusted ? '*' : '' }}</th>
+        <th class="stat-col text-warning" title="Empates">E{{ isAdjusted ? '*' : '' }}</th>
+        <th class="stat-col text-danger" title="Derrotas">D{{ isAdjusted ? '*' : '' }}</th>
+        <th class="stat-col" title="Goles a Favor">GF</th>
+        <th class="stat-col" title="Goles en Contra">GC</th>
+        <th class="stat-col hide-mobile" title="Fair Play (Amarilla: 1pt, Roja: 3pt)">FP</th>
+        <th class="dg-col" title="Diferencia de Goles">DG{{ isAdjusted ? '*' : '' }}</th>
+        <th class="pts-col-data" title="Puntos Totales">Pts{{ isAdjusted ? '*' : '' }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of data; track $index) {
+      <tr class="align-middle">
+        <td class="pos-col" [class.pos-advances]="!showGroupColumn && $index < 3"
+          [class.pos-best-fourth]="(item.id === bestFourthId && $index === 3) || (showGroupColumn && $index === 0)"
+          [class.pos-potential]="!showGroupColumn && $index === 3 && item.id !== bestFourthId">
+          <span class="pos-badge">{{ $index + 1 }}º</span>
+        </td>
+        <td class="team-col text-start">
+          <a [routerLink]="['/teams', item.id]" style="text-decoration: none; color: inherit;"
+            class="d-flex align-items-center gap-3">
+            <img [src]="item.team_logo || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" class="team-logo-small"
+              onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+            <span class="text-truncate fw-semibold">{{ item.team_name }}</span>
+          </a>
+        </td>
+        @if(showGroupColumn){
+        <td class="stat-col text-center text-muted fw-bold">{{ item.group_name }}</td>
+        }
+        <td class="stat-col text-center">{{ item.played || 0 }}</td>
+        <td class="stat-col text-center text-success fw-bold">{{ item.won || 0 }}</td>
+        <td class="stat-col text-center text-warning fw-bold">{{ item.drawn || 0 }}</td>
+        <td class="stat-col text-center text-danger fw-bold">{{ item.lost || 0 }}</td>
+        <td class="stat-col text-center">{{ item.goals_for || 0 }}</td>
+        <td class="stat-col text-center">{{ item.goals_against || 0 }}</td>
+        <td class="stat-col text-center hide-mobile">
+          <span class="text-muted" style="font-size: 0.85rem;">{{ (item.yellow_cards || 0) + (item.red_cards || 0) * 3
+            }}</span>
+        </td>
+        <td class="dg-col text-center">{{ item.goal_difference || 0 }}</td>
+        <td class="pts-col-data text-center">{{ item.points || 0 }}</td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>

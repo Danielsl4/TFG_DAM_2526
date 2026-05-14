@@ -1,0 +1,43 @@
+.legal-nav {
+  position: sticky;
+  top: 80px;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  background: rgba(248, 249, 250, 0.8) !important;
+}
+
+.legal-nav a {
+  color: var(--fondo-oscuro);
+  transition: color 0.2s ease;
+}
+
+.legal-nav a:hover {
+  color: var(--primario);
+}
+
+.legal-content {
+  line-height: 1.8;
+  color: #4a4a4a;
+}
+
+h1, h2 {
+  color: var(--fondo-oscuro);
+}
+
+h4 {
+  color: var(--primario-oscuro);
+  font-weight: 700;
+}
+
+section {
+  scroll-margin-top: 150px;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

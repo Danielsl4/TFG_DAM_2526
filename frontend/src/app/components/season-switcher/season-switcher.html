@@ -1,0 +1,30 @@
+<div class="switcher-wrapper" [class.open]="isOpen()">
+  <!-- Menú Desplegable (arriba del botón) -->
+  <div class="season-menu shadow-lg" *ngIf="isOpen()">
+    <div class="menu-header">
+      <small>Cambiar Temporada</small>
+    </div>
+    <div class="menu-items">
+      @for (s of seasons(); track s.id) {
+        <button class="menu-item" 
+                [class.active]="currentSeasonId() === s.id"
+                (click)="selectSeason(s.id)">
+          <span class="season-name">{{ s.name }}</span>
+          @if (s.is_active) {
+            <span class="badge-active">Actual</span>
+          }
+          @if (currentSeasonId() === s.id) {
+            <i class="fas fa-check ms-auto text-primary"></i>
+          }
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Botón Flotante (Píldora) -->
+  <button class="floating-pill shadow" (click)="toggleMenu()">
+    <i class="fas fa-history me-2"></i>
+    <span class="pill-text">{{ getSelectedName() }}</span>
+    <i class="fas fa-chevron-up ms-2 transition" [style.transform]="isOpen() ? 'rotate(180deg)' : 'none'"></i>
+  </button>
+</div>

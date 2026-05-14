@@ -1,0 +1,75 @@
+<div class="admin-page">
+  <div class="page-header">
+    <h1>Gestión de Usuarios</h1>
+    <div class="header-actions">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Buscar por nombre o email..." [(ngModel)]="search" (keyup.enter)="onSearch()">
+      </div>
+    </div>
+  </div>
+
+  <div class="table-container shadow">
+    <div class="table-responsive">
+      <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of users; track user.id) {
+        <tr>
+          <td>
+            <div class="user-info">
+              <span class="user-name">{{ user.username }}</span>
+            </div>
+          </td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="role-badge" [ngClass]="user.role">
+              {{ user.role === 'admin' ? 'Administrador' : (user.role === 'referee' ? 'Árbitro' : 'Usuario') }}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <div class="actions-wrapper">
+              <button class="btn-icon edit" (click)="editUser(user)" title="Editar Usuario">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon delete" (click)="deleteUser(user)" title="Eliminar Usuario">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        }
+        @if (users.length === 0 && !loading) {
+        <tr>
+          <td colspan="5" class="empty-state">
+            No se han encontrado usuarios.
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    </div>
+
+    <div class="pagination-controls">
+      <div class="page-info">
+        Página <strong>{{ page }}</strong> de {{ totalPages }}
+        <span class="total-count">(Total: {{ total }})</span>
+      </div>
+      <div class="pagination-buttons">
+        <button class="btn-page" [disabled]="page === 1" (click)="prevPage()">
+          <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <button class="btn-page" [disabled]="page * limit >= total" (click)="nextPage()">
+          Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

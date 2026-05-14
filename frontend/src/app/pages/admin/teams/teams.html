@@ -1,0 +1,96 @@
+<div class="admin-page">
+  <div class="page-header">
+    <h2>Gestión de Equipos</h2>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="openCreateModal()">
+        <i class="fas fa-plus"></i> Nuevo Equipo
+      </button>
+      <button class="btn-outline" (click)="openAddExistingModal()" title="Añadir equipo que ya existe en el sistema">
+        <i class="fas fa-search-plus"></i> Añadir Existente
+      </button>
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" [(ngModel)]="searchTerm" (input)="onSearch()" placeholder="Buscar por nombre...">
+      </div>
+    </div>
+  </div>
+
+  <div class="table-container shadow">
+    <div class="table-responsive">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Logo</th>
+            <th>Nombre</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (team of teams; track $index) {
+          <tr>
+            <td>
+              <img
+                [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/jugadorgenerico.webp'"
+                class="team-logo-small" alt="logo">
+            </td>
+            <td>
+              <div class="team-info-cell">
+                <span class="team-name-text">{{ team.name }}</span>
+                <div class="team-meta-info">
+                  @if (team.coach) {
+                  <span><i class="fas fa-user-tie"></i> {{ team.coach }}</span>
+                  }
+                  @if (team.kit_color) {
+                  <span><i class="fas fa-tshirt"></i> {{ team.kit_color }}</span>
+                  }
+                  @if (team.delegate) {
+                  <span><i class="fas fa-id-badge"></i> {{ team.delegate }}</span>
+                  }
+                  @if (team.phone) {
+                  <span><i class="fas fa-phone"></i> {{ team.phone }}</span>
+                  }
+                </div>
+              </div>
+            </td>
+            <td class="actions-cell">
+              <div class="actions-wrapper">
+                <button class="btn-icon manage" (click)="openSquadModal(team)" title="Gestionar Plantilla">
+                  <i class="fas fa-users"></i>
+                </button>
+                <button class="btn-icon edit" (click)="openEditModal(team)" title="Editar">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon delete" (click)="deleteTeam(team)" title="Quitar de la temporada">
+                  <i class="fas fa-minus-circle"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          }
+          @if (teams.length === 0) {
+          <tr>
+            <td colspan="3" class="empty-state">No se han encontrado equipos.</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="pagination-controls" *ngIf="pagination.totalPages > 1">
+      <button class="btn-page" [disabled]="pagination.page === 1" (click)="changePage(pagination.page - 1)">
+        <i class="fas fa-chevron-left"></i> Anterior
+      </button>
+
+      <div class="page-info">
+        Página <strong>{{ pagination.page }}</strong> de {{ pagination.totalPages }}
+        <span class="total-count">({{ pagination.total }} equipos en total)</span>
+      </div>
+
+      <button class="btn-page" [disabled]="pagination.page === pagination.totalPages"
+        (click)="changePage(pagination.page + 1)">
+        Siguiente <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</div>

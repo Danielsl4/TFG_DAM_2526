@@ -1,0 +1,465 @@
+.admin-page {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-box i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+}
+
+.search-box input {
+  padding: 0.8rem 1rem 0.8rem 2.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  width: 250px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.search-box input:focus {
+  border-color: var(--secundario);
+}
+
+.table-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th {
+  background: #f8f9fa;
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #666;
+  border-bottom: 2px solid #eee;
+}
+
+.admin-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+
+.team-logo-small {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.info-row.sub {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 4px;
+}
+
+.actions-wrapper {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.actions-cell {
+  padding: 1rem !important; /* Asegura que el padding no rompa la celda */
+}
+
+.admin-table th:last-child,
+.admin-table td:last-child {
+  text-align: center;
+  width: 120px;
+}
+
+.btn-icon {
+  border: none;
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.btn-icon i {
+  font-size: 1.2rem;
+}
+
+.btn-icon.edit {
+  background: rgba(0, 188, 212, 0.1);
+  color: #00bcd4;
+}
+
+.btn-icon.edit:hover {
+  background: #00bcd4;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 188, 212, 0.4);
+}
+
+.btn-icon.delete {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+.btn-icon.delete:hover {
+  background: #f44336;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+.btn-primary {
+  background: var(--secundario);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: var(--secundario-oscuro);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--secundario-subtle);
+}
+
+.btn-outline {
+  background: white;
+  color: var(--secundario);
+  border: 1px solid var(--secundario);
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  background: var(--secundario-subtle);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--secundario-subtle);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .search-box {
+    width: 100%;
+    order: 2; /* Asegura que el buscador vaya abajo */
+  }
+
+  .search-box input {
+    width: 100%;
+  }
+
+  .btn-primary {
+    width: 100%;
+    justify-content: center;
+    order: 1; /* El botón arriba */
+  }
+}
+
+/* Paginación */
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: #f9f9f9;
+  border-top: 1px solid #eee;
+  border-radius: 0 0 12px 12px;
+}
+
+.btn-page {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: white;
+  color: #333;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-page:hover:not(:disabled) {
+  background: var(--secundario-subtle);
+  border-color: var(--secundario);
+  color: var(--secundario-oscuro);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--secundario-subtle);
+}
+
+.btn-page:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f5f5f5;
+}
+
+.page-info {
+  font-size: 0.95rem;
+  color: #666;
+}
+
+.page-info strong {
+  color: var(--titulo);
+  background: var(--secundario-subtle);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--secundario-subtle);
+}
+
+.total-count {
+  margin-left: 10px;
+  font-size: 0.85rem;
+  color: #999;
+}
+
+/* Detalles del Equipo en Tabla */
+.team-info-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.team-name-text {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--titulo);
+}
+
+.team-meta-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.team-meta-info span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--texto-claro);
+  background: var(--primario-subtle);
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.team-meta-info span:hover {
+  background: var(--secundario-subtle);
+  border-color: var(--secundario);
+}
+
+.team-meta-info i {
+  color: var(--secundario);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .pagination-controls {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.team-logo-small {
+  width: 65px;
+  height: 65px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: white;
+  padding: 5px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.team-logo-small:hover {
+  transform: scale(1.15);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+  z-index: 10;
+}
+
+/* Estilos para el buscador de equipos existentes (SweetAlert) */
+.search-container-swal {
+  position: relative;
+  width: 100%;
+}
+
+.search-results-popover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  z-index: 9999;
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 5px;
+  display: none;
+}
+
+.team-search-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.team-search-item:hover {
+  background: #f8f9fa;
+}
+
+.team-search-item .mini-photo {
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #f9f9f9;
+  padding: 3px;
+  border: 1px solid #eee;
+}
+
+.selected-item-preview {
+  background: #f8f9fa;
+  border: 1px dashed var(--secundario);
+  border-radius: 12px;
+  padding: 15px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.selected-details {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.selected-details .mini-photo {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: white;
+  padding: 5px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.selected-details .info {
+  display: flex;
+  flex-direction: column;
+}
+
+.selected-details .info strong {
+  font-size: 1.1rem;
+  color: var(--titulo);
+}
+
+.selected-details .info span {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.player-info-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  text-align: left;
+}
+
+.player-info-meta strong {
+  color: #333;
+}
+
+.player-info-meta span {
+  font-size: 0.8rem;
+  color: #888;
+}

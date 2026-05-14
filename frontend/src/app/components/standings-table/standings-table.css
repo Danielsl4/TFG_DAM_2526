@@ -1,0 +1,118 @@
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 650px;
+}
+
+.standings-table th {
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: none;
+  padding: 0.5rem 0.75rem;
+  border-bottom: none;
+  text-align: center;
+}
+
+.standings-table th.team-col-header {
+  text-align: left;
+  width: 200px;
+}
+
+.standings-table td {
+  padding: 0.85rem 0.75rem;
+  border-bottom: none;
+  font-size: 0.9rem;
+  color: #212529;
+  text-align: center;
+}
+
+.pos-col {
+  width: 45px;
+  text-align: center !important;
+  font-weight: 700;
+  color: #495057;
+  padding-left: 0.5rem !important;
+}
+
+.pos-badge {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  border-radius: 50%;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.pos-advances .pos-badge {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.pos-potential .pos-badge {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.pos-best-fourth .pos-badge {
+  background-color: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #fdba74;
+}
+
+.team-col {
+  text-align: left !important;
+  width: 200px;
+  padding-left: 0 !important;
+  vertical-align: middle;
+}
+
+.team-col a {
+  min-width: 0;
+}
+
+.team-col span.text-truncate {
+  display: block;
+  max-width: 100%;
+}
+
+.team-logo-small {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.pts-col-data {
+  font-weight: 800 !important;
+  width: 50px;
+  color: #000 !important;
+}
+
+.stat-col {
+  width: 40px;
+}
+
+.dg-col {
+  width: 45px;
+}
+
+.table-responsive {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tie-break-info {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+.tie-break-info span.fw-semibold {
+  color: #495057;
+}
+

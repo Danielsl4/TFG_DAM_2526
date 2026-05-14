@@ -1,0 +1,72 @@
+<div class="admin-container">
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <h2>Panel Admin</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <i class="fas fa-chart-line"></i> Dashboard
+      </a>
+      <a routerLink="/admin/teams" routerLinkActive="active">
+        <i class="fas fa-users"></i> Equipos
+      </a>
+      <a routerLink="/admin/players" routerLinkActive="active">
+        <i class="fas fa-user-friends"></i> Jugadores
+      </a>
+      <a routerLink="/admin/competitions" routerLinkActive="active">
+        <i class="fas fa-trophy"></i> Competición
+      </a>
+      <a routerLink="/admin/users" routerLinkActive="active">
+        <i class="fas fa-user-cog"></i> Usuarios
+      </a>
+      <a routerLink="/admin/logs" routerLinkActive="active">
+        <i class="fas fa-history"></i> Auditoría
+      </a>
+      <div class="nav-divider"></div>
+      <a routerLink="/" class="exit-link">
+        <i class="fas fa-external-link-alt"></i> Salir al Sitio
+      </a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <!-- Top Navigation Bar (Visible on mobile/tablet) -->
+    <nav class="admin-top-nav">
+      <div class="top-nav-scroll-container">
+        <button class="scroll-arrow left" (click)="scrollAdminNav(-100)">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="top-nav-links" #adminNavContainer>
+          <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            <i class="fas fa-chart-line"></i> Dashboard
+          </a>
+          <a routerLink="/admin/teams" routerLinkActive="active">
+            <i class="fas fa-users"></i> Equipos
+          </a>
+          <a routerLink="/admin/players" routerLinkActive="active">
+            <i class="fas fa-user-friends"></i> Jugadores
+          </a>
+          <a routerLink="/admin/competitions" routerLinkActive="active">
+            <i class="fas fa-trophy"></i> Competición
+          </a>
+          <a routerLink="/admin/users" routerLinkActive="active">
+            <i class="fas fa-user-cog"></i> Usuarios
+          </a>
+          <a routerLink="/admin/logs" routerLinkActive="active">
+            <i class="fas fa-history"></i> Auditoría
+          </a>
+        </div>
+        <button class="scroll-arrow right" (click)="scrollAdminNav(100)">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </nav>
+
+    <header class="admin-header">
+      <h1>Gestión de la Liga</h1>
+    </header>
+    <section class="admin-content">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>

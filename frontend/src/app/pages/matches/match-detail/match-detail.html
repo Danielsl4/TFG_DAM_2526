@@ -1,0 +1,487 @@
+<div class="match-detail-page animate-fade-in">
+  @if (matchData(); as match) {
+
+  <div class="section-header text-center py-3 border-bottom border-top">
+    <h2 class="mb-0 fs-4 fw-normal text-muted">Partido</h2>
+  </div>
+
+  <div class="container py-5">
+    <div class="row align-items-center mb-5">
+      <div class="col-4 text-center">
+        @if (match.homeTeam) {
+        <a href="/teams/{{ match.homeTeam.id }}" style="text-decoration: none; color: black;">
+          <img [src]="match.homeTeam.logoUrl" alt="Logo" class="team-logo mb-3"
+            onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+          <h3 class="team-name">{{ match.homeTeam.name }}</h3>
+        </a>
+        } @else {
+        <img src="https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp" alt="TBD" class="team-logo mb-3 opacity-50">
+        <h3 class="team-name text-muted">{{ match.homeTeamPlaceholder || 'Por definir' }}</h3>
+        }
+      </div>
+
+      <div class="col-4 text-center">
+        @if (match.status === 'en_curso') {
+        <div class="live-indicator animate-pulse mb-2">
+          <span class="live-dot"></span> EN VIVO
+        </div>
+        } @else if (match.status === 'finalizado') {
+        <div class="finished-indicator mb-2">
+          FINALIZADO
+        </div>
+        }
+        <div class="score-display" [class.is-live]="match.status === 'en_curso'"
+          [class.is-finished]="match.status === 'finalizado'">
+          @if (match.status == 'pendiente') {
+          <span class="score-dash">-</span>
+          <span class="score-dash">-</span>
+          } @else {
+          <span class="score-number">{{ match.homeGoals }}</span>
+          <span class="score-dash">-</span>
+          <span class="score-number">{{ match.awayGoals }}</span>
+          }
+        </div>
+
+        @if (hasPenaltyEvents()) {
+        <div class="penalty-score text-warning fw-bold mt-2 animate-fade-in">
+          ({{ match.homePenaltyGoals || 0 }} - {{ match.awayPenaltyGoals || 0 }})
+          <div class="small text-uppercase tracking-widest mt-1" style="font-size: 0.7rem;">Penaltis</div>
+        </div>
+        }
+      </div>
+
+      <div class="col-4 text-center">
+        @if (match.awayTeam) {
+        <a href="/teams/{{ match.awayTeam.id }}" style="text-decoration: none; color: black;">
+          <img [src]="match.awayTeam.logoUrl" alt="Logo" class="team-logo mb-3"
+            onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+          <h3 class="team-name">{{ match.awayTeam.name }}</h3>
+        </a>
+        } @else {
+        <img src="https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp" alt="TBD" class="team-logo mb-3 opacity-50">
+        <h3 class="team-name text-muted">{{ match.awayTeamPlaceholder || 'Por definir' }}</h3>
+        }
+      </div>
+    </div>
+
+    <div class="match-info-meta text-center mb-4 text-muted">
+      <div class="mb-2">
+        <i class="bi bi-calendar3 me-2"></i>
+        {{ match.date | date: 'EEEE, d \'de\' MMMM \'de\' yyyy, HH:mm' }}
+      </div>
+      @if (match.field) {
+      <div class="mb-2">
+        <i class="bi bi-geo-alt-fill me-2"></i>
+        <a href="{{ match.field.location }}" target="_blank">{{ match.field.name }}</a>
+      </div>
+      }
+    </div>
+
+    <div class="row justify-content-center mb-4">
+      <div class="col-md-8">
+        <app-match-voting [match]="match"></app-match-voting>
+      </div>
+    </div>
+
+    <div class="text-center mb-4">
+      <h2 class="fs-4 fw-normal text-muted py-2 border-bottom d-inline-block px-5">Información</h2>
+    </div>
+    <div class="info-content py-4 px-md-5">
+      @if (match.status == 'pendiente') {
+      <div class="text-center py-5">
+        <p class="fs-5 text-muted fw-light">Todavía no ha comenzado el partido</p>
+      </div>
+      } @else {
+      <div class="timeline container-fluid">
+        <div class="row align-items-center mb-4">
+          <div class="col-5 px-0"></div>
+          <div class="col-2 text-center p-0">
+            <span class="badge rounded-pill bg-light text-muted border px-3">Inicio</span>
+          </div>
+          <div class="col-5 px-0"></div>
+        </div>
+
+        @if (matchEvents().length === 0) {
+        <div class="text-center py-4">
+          <p class="text-muted fst-italic">No se han registrado eventos para este partido</p>
+        </div>
+        } @else {
+        @for (event of matchEvents(); track event.id) {
+          @if (event.type !== 'penalty_shootout_goal' && event.type !== 'penalty_shootout_miss') {
+            <div class="row align-items-center mb-3">
+              <div class="col-5 text-end px-0">
+                @if (event.team == 'home') {
+                <div class="player-box border rounded px-3 py-2 bg-white shadow-sm d-inline-block position-relative">
+                  <a href="/players/{{ event.player.id }}" style="text-decoration: none; color: black;">{{ event.player.name
+                    }}</a>
+                  @if (canManage()) {
+                  <button class="btn btn-link text-danger p-0 ms-2 btn-delete-event" (click)="deleteEvent(event.id)">
+                    <i class="bi bi-x-circle"></i>
+                  </button>
+                  }
+                </div>
+                }
+              </div>
+
+              <div class="col-2 text-center text-muted small p-0 fw-bold d-flex align-items-center justify-content-center">
+                <div class="event-icon shadow-sm">
+                  @if (event.type == 'goal') {
+                  <img src="/icons/goal.svg" alt="Gol" class="event-icon-img">
+                  }
+                  @if (event.type == 'yellow_card') {
+                  <img src="/icons/yellow_card.svg" alt="Tarjeta Amarilla" class="event-icon-img">
+                  }
+                  @if (event.type == 'red_card') {
+                  <img src="/icons/red_card.svg" alt="Tarjeta Roja" class="event-icon-img">
+                  }
+                </div>
+              </div>
+
+              <div class="col-5 text-start px-0">
+                @if (event.team == 'away') {
+                <div class="player-box border rounded px-3 py-2 bg-white shadow-sm d-inline-block position-relative">
+                  <a href="/players/{{ event.player.id }}" style="text-decoration: none; color: black;">{{ event.player.name
+                    }}</a>
+                  @if (canManage()) {
+                  <button class="btn btn-link text-danger p-0 ms-2 btn-delete-event" (click)="deleteEvent(event.id)">
+                    <i class="bi bi-x-circle"></i>
+                  </button>
+                  }
+                </div>
+                }
+              </div>
+            </div>
+          }
+        }
+
+        @if (hasPenaltyEvents()) {
+          <div class="row align-items-center my-5">
+            <div class="col-12 text-center">
+              <div class="d-flex align-items-center justify-content-center gap-3">
+                <hr class="flex-grow-1 opacity-10">
+                <span class="badge rounded-pill bg-warning text-dark px-4 py-2 text-uppercase tracking-widest fw-bold shadow-sm">
+                  Tanda de Penaltis
+                </span>
+                <hr class="flex-grow-1 opacity-10">
+              </div>
+            </div>
+          </div>
+
+          @for (event of matchEvents(); track event.id) {
+            @if (event.type === 'penalty_shootout_goal' || event.type === 'penalty_shootout_miss') {
+              <div class="row align-items-center mb-3 animate-fade-in">
+                <div class="col-5 text-end px-0">
+                  @if (event.team == 'home') {
+                  <div class="player-box border rounded px-3 py-2 bg-white shadow-sm d-inline-block position-relative" 
+                       [style.border-left]="event.type === 'penalty_shootout_goal' ? '4px solid #198754' : '4px solid #dc3545'">
+                    <a href="/players/{{ event.player.id }}" style="text-decoration: none; color: black;" class="d-flex align-items-center justify-content-end">
+                      @if (event.type === 'penalty_shootout_goal') {
+                        <img src="/icons/goal.svg" style="width: 18px; height: 18px;" class="me-2">
+                      } @else {
+                        <span class="me-2">❌</span>
+                      }
+                      {{ event.player.name }}
+                    </a>
+                    @if (canManage()) {
+                    <button class="btn btn-link text-danger p-0 ms-2 btn-delete-event" (click)="deleteEvent(event.id)">
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                    }
+                  </div>
+                  }
+                </div>
+
+                <div class="col-2 text-center p-0">
+                  <div class="event-dot" [class.bg-success]="event.type === 'penalty_shootout_goal'" [class.bg-danger]="event.type === 'penalty_shootout_miss'"></div>
+                </div>
+
+                <div class="col-5 text-start px-0">
+                  @if (event.team == 'away') {
+                  <div class="player-box border rounded px-3 py-2 bg-white shadow-sm d-inline-block position-relative"
+                       [style.border-right]="event.type === 'penalty_shootout_goal' ? '4px solid #198754' : '4px solid #dc3545'">
+                    <a href="/players/{{ event.player.id }}" style="text-decoration: none; color: black;" class="d-flex align-items-center">
+                      @if (event.type === 'penalty_shootout_goal') {
+                        <img src="/icons/goal.svg" style="width: 18px; height: 18px;" class="me-2">
+                      } @else {
+                        <span class="me-2">❌</span>
+                      }
+                      {{ event.player.name }}
+                    </a>
+                    @if (canManage()) {
+                    <button class="btn btn-link text-danger p-0 ms-2 btn-delete-event" (click)="deleteEvent(event.id)">
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                    }
+                  </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+        }
+        }
+
+        <div class="row align-items-center mt-4">
+          <div class="col-5 px-0"></div>
+          <div class="col-2 text-center p-0">
+            <span class="badge rounded-pill bg-light text-muted border px-3">Final</span>
+          </div>
+          <div class="col-5 px-0"></div>
+        </div>
+      </div>
+      }
+
+      @if (match.observations) {
+      <div class="observations-section mt-5 p-4 border rounded bg-light shadow-sm text-center">
+        <h4 class="fs-6 fw-bold text-muted mb-3">Observaciones</h4>
+        <p class="mb-0 text-muted fst-italic">{{ match.observations }}</p>
+      </div>
+      }
+    </div>
+
+    <div class="text-center mt-5 d-flex justify-content-center gap-3">
+      <button class="btn btn-outline-secondary rounded-pill px-4" routerLink="/matches">
+        Volver
+      </button>
+
+      @if (canManage()) {
+      <button class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="onManageMatch()">
+        <i class="bi bi-gear-fill me-2"></i> Gestionar Partido
+      </button>
+      }
+    </div>
+  </div>
+
+  <!-- Modal de Opciones Iniciales -->
+  <div class="modal fade" id="managementModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold">Gestión de Partido</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+            (click)="onCloseManagementModal()"></button>
+        </div>
+        <div class="modal-body py-4">
+          <p class="text-muted mb-4 small">Selecciona cómo deseas proceder con la edición del partido.</p>
+          <div class="d-grid gap-3">
+            <button class="btn btn-outline-primary py-3 rounded-3 text-start d-flex align-items-center"
+              (click)="onEditMode(false)">
+              <i class="bi bi-pencil-square fs-3 me-3"></i>
+              <div>
+                <div class="fw-bold">Editar partido</div>
+                <div class="small opacity-75">
+                  Modifica los eventos sin marcar el partido como en juego.
+                </div>
+              </div>
+            </button>
+
+            <button class="btn btn-primary py-3 rounded-3 text-start d-flex align-items-center"
+              (click)="onEditMode(true)">
+              <i class="bi bi-lightning-fill fs-3 me-3"></i>
+              <div>
+                <div class="fw-bold">Editar en directo</div>
+                <div class="small opacity-75">
+                  Inicia el partido y registra los eventos en tiempo real.
+                </div>
+              </div>
+            </button>
+
+            @if (isAdmin() && match.status === 'pendiente') {
+            <hr class="my-1 opacity-10">
+            <button class="btn btn-outline-info py-3 rounded-3 text-start d-flex align-items-center"
+              (click)="onSetupTeams()">
+              <i class="bi bi-person-gear fs-3 me-3"></i>
+              <div>
+                <div class="fw-bold">Configurar Emparejamiento</div>
+                <div class="small opacity-75">
+                  Asignar equipos reales a esta eliminatoria.
+                </div>
+              </div>
+            </button>
+            }
+
+            @if (match.status !== 'finalizado') {
+            <hr class="my-1 opacity-10">
+
+            <button class="btn btn-outline-danger py-3 rounded-3 text-start d-flex align-items-center"
+              (click)="onFinalizeMode()">
+              <i class="bi bi-flag-fill fs-3 me-3"></i>
+              <div>
+                <div class="fw-bold">Finalizar partido</div>
+                <div class="small opacity-75">
+                  El acta se cerrará permanentemente.
+                </div>
+              </div>
+            </button>
+
+            @if (showPenaltyShootout()) {
+              <button class="btn btn-warning py-3 rounded-3 text-start d-flex align-items-center mt-2 border-0 shadow-sm"
+                (click)="onStartPenaltyShootout()">
+                <i class="bi bi-lightning-charge-fill fs-3 me-3 text-dark"></i>
+                <div>
+                  <div class="fw-bold text-dark">Ir a Tanda de Penaltis</div>
+                  <div class="small text-dark opacity-75">
+                    Hay empate. Registrar lanzamientos.
+                  </div>
+                </div>
+              </button>
+            }
+            }
+
+            <div class="mt-4 text-center">
+              <button class="btn btn-link btn-sm text-muted text-decoration-none" (click)="onAddObservationsMode()">
+                <i class="bi bi-chat-left-text me-1"></i>
+                {{ match.observations ? 'Editar observaciones del acta' : 'Añadir nota u observaciones' }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal"
+            (click)="onCloseManagementModal()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Inserción de Eventos -->
+  <div class="modal fade" id="eventInsertModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-0 py-3">
+          <h5 class="modal-title fw-bold">Añadir Evento al Partido</h5>
+          <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal" aria-label="Close"
+            (click)="onCloseEventModal()"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="row g-4">
+            <!-- Selector de Equipo -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-muted small uppercase">1. Equipo</label>
+              <div class="d-flex gap-2">
+                <button
+                  class="btn flex-grow-1 py-3 rounded-3 d-flex flex-column align-items-center border btn-outline-primary"
+                  [class.active]="selectedTeamSide() === 'home'" (click)="selectedTeamSide.set('home'); onTeamSelect()">
+                  <img [src]="match.homeTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" class="mb-2" width="40" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                  <span class="small fw-bold">{{ match.homeTeam?.name || match.homeTeamPlaceholder || 'Local' }}</span>
+                </button>
+                <button
+                  class="btn flex-grow-1 py-3 rounded-3 d-flex flex-column align-items-center border btn-outline-primary"
+                  [class.active]="selectedTeamSide() === 'away'" (click)="selectedTeamSide.set('away'); onTeamSelect()">
+                  <img [src]="match.awayTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" class="mb-2" width="40" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                  <span class="small fw-bold">{{ match.awayTeam?.name || match.awayTeamPlaceholder || 'Visitante' }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Selector de Acción -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-muted small uppercase">2. Acción</label>
+              <select class="form-select form-select-lg rounded-3 mb-3" [(ngModel)]="selectedEventType">
+                <option value="gol">⚽ Gol</option>
+                <option value="tarjeta_amarilla">🟨 Tarjeta Amarilla</option>
+                <option value="tarjeta_roja">🟥 Tarjeta Roja</option>
+              </select>
+
+              <label class="form-label fw-bold text-muted small uppercase">3. Jugador</label>
+              <select class="form-select form-select-lg rounded-3" [(ngModel)]="selectedPlayerId"
+                [disabled]="!selectedTeamSide()">
+                <option [ngValue]="null" disabled>Selecciona un jugador...</option>
+                @for (player of teamPlayers(); track player.id) {
+                <option [ngValue]="player.id">#{{ player.jersey_number || '?' }} - {{ player.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="d-grid mt-5">
+            <button class="btn btn-primary btn-lg rounded-pill py-3 fw-bold shadow-sm"
+              [disabled]="!selectedPlayerId() || isSubmittingEvent()" (click)="submitEvent()">
+              @if (isSubmittingEvent()) {
+              <span class="spinner-border spinner-border-sm me-2"></span> Insertando...
+              } @else {
+              <i class="bi bi-plus-circle me-2"></i> Insertar Evento
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  } @else {
+  <div class="text-center py-5">
+    @if (isLoading()) {
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="text-muted mt-3">Cargando detalles del partido...</p>
+    } @else {
+    <i class="bi bi-exclamation-triangle fs-1 text-warning mb-3 d-block"></i>
+    <p class="text-muted fs-5">No se ha podido encontrar la información del partido.</p>
+    <button class="btn btn-outline-secondary rounded-pill px-4 mt-3" routerLink="/matches">
+      Volver al calendario
+    </button>
+    }
+  </div>
+  }
+
+  <!-- Modal de Tanda de Penaltis (Dedicado) -->
+  <div class="modal fade" id="penaltyShootoutModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    @if (matchData(); as match) {
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow-lg bg-dark text-white">
+        <div class="modal-header border-bottom border-secondary py-3">
+          <h5 class="modal-title fw-bold text-uppercase tracking-widest text-warning">
+            <i class="bi bi-lightning-charge-fill me-2"></i> TANDA DE PENALTIS
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-4">
+            <label class="form-label small fw-bold text-muted uppercase">1. Equipo Lanzador</label>
+            <div class="d-flex gap-2">
+              <button class="btn flex-grow-1 py-3 rounded-3 border border-secondary text-white"
+                [class.btn-primary]="selectedPenaltyTeamSide() === 'home'" (click)="selectedPenaltyTeamSide.set('home'); onPenaltyTeamSelect()">
+                {{ match.homeTeam?.name || 'Local' }}
+              </button>
+              <button class="btn flex-grow-1 py-3 rounded-3 border border-secondary text-white"
+                [class.btn-primary]="selectedPenaltyTeamSide() === 'away'" (click)="selectedPenaltyTeamSide.set('away'); onPenaltyTeamSelect()">
+                {{ match.awayTeam?.name || 'Visitante' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label small fw-bold text-muted uppercase">2. Seleccionar Jugador</label>
+            <select class="form-select bg-dark text-white border-secondary" [(ngModel)]="selectedPenaltyPlayerId" [disabled]="!selectedPenaltyTeamSide()">
+              <option [ngValue]="null">Elegir lanzador...</option>
+              @for (player of penaltyPlayers(); track player.id) {
+                <option [ngValue]="player.id">#{{ player.jersey_number }} - {{ player.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-6">
+              <button class="btn btn-success btn-lg w-100 py-3 rounded-3 shadow-sm" (click)="submitPenalty(true)" [disabled]="!selectedPenaltyPlayerId()">
+                <i class="bi bi-check-circle me-2"></i> MARCADO
+              </button>
+            </div>
+            <div class="col-6">
+              <button class="btn btn-danger btn-lg w-100 py-3 rounded-3 shadow-sm" (click)="submitPenalty(false)" [disabled]="!selectedPenaltyPlayerId()">
+                <i class="bi bi-x-circle me-2"></i> FALLADO
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cerrar Tanda</button>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+</div>

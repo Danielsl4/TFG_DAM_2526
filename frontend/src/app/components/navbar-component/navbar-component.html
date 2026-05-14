@@ -1,0 +1,78 @@
+<nav class="navbar navbar-expand-lg px-3">
+  <div class="d-flex align-items-center">
+    <a routerLink="/"><img
+        src="https://res.cloudinary.com/dyxl1d54d/image/upload/v1777509247/tfg_futsal/general/logo_oficial_tfg.webp"
+        alt="Logo TFG" class="img-fluid footer-logo"></a>
+
+    @if(lastActivity) {
+    <div class="last-update-pill ms-3 d-none d-lg-inline-flex align-items-center">
+      <span class="update-dot me-2"></span>
+      <span class="update-text">Última actualización: {{ lastActivity | date:'dd/MM HH:mm' }}</span>
+    </div>
+    }
+  </div>
+
+  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <!-- Last Update for Mobile -->
+    @if(lastActivity) {
+    <div class="d-lg-none mb-3">
+      <div class="last-update-pill d-inline-flex align-items-center">
+        <span class="update-dot me-2"></span>
+        <span class="update-text">Última actualización: {{ lastActivity | date:'dd/MM HH:mm' }}</span>
+      </div>
+    </div>
+    }
+    <ul class="navbar-nav mx-auto align-items-lg-center">
+      <li class="nav-item fs-5"><a class="nav-link text-white" routerLink="/" routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }" data-bs-toggle="collapse"
+          data-bs-target=".navbar-collapse.show">Inicio</a></li>
+      <li class="nav-item fs-5"><a class="nav-link text-white" routerLink="/standings" routerLinkActive="active"
+          data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">Clasificación</a></li>
+      <li class="nav-item fs-5"><a class="nav-link text-white" routerLink="/matches" routerLinkActive="active"
+          data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">Partidos</a></li>
+      <li class="nav-item fs-5"><a class="nav-link text-white" routerLink="/statistics" routerLinkActive="active"
+          data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">Estadisticas</a></li>
+
+      @if (isAuthenticated() && isAdmin()) {
+        <li class="nav-item fs-5">
+          <a class="nav-link text-white" routerLink="/admin" routerLinkActive="active" data-bs-toggle="collapse"
+            data-bs-target=".navbar-collapse.show">Admin</a>
+        </li>
+      }
+    </ul>
+
+    <ul class="navbar-nav ms-auto align-items-lg-center">
+      @if (!isAuthenticated()) {
+        <li class="nav-item fs-5"><a class="nav-link text-white" routerLink="/login" routerLinkActive="active"
+            data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">Iniciar Sesión</a></li>
+        <li class="nav-item fs-5"><a class="nav-link text-white" routerLink="/register" routerLinkActive="active"
+            data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">Registrarse</a></li>
+      }
+
+      @if (isAuthenticated()) {
+        <li class="nav-item fs-5">
+          <a class="nav-link" routerLink="/profile" routerLinkActive="active" data-bs-toggle="collapse"
+            data-bs-target=".navbar-collapse.show" [class.text-info]="isAdmin()" [class.text-warning]="isReferee()"
+            [class.text-white]="!isAdmin() && !isReferee()">
+            <i class="bi bi-person-fill" [class.me-lg-0]="!isAdmin() && !isReferee()" [class.me-2]="isAdmin() || isReferee()"></i>
+            <span class="d-lg-none ms-1">Perfil</span>
+            @if (isAdmin()) { <small class="text-info-emphasis opacity-75 d-lg-none"> (Admin)</small> }
+            @if (isReferee()) { <small class="text-warning-emphasis opacity-75 d-lg-none"> (Árbitro)</small> }
+          </a>
+        </li>
+        <li class="nav-item fs-5">
+          <a class="nav-link text-danger" style="cursor: pointer;" (click)="onLogout()" data-bs-toggle="collapse"
+            data-bs-target=".navbar-collapse.show">
+            <i class="bi bi-box-arrow-right"></i>
+            <span class="d-lg-none ms-2">Cerrar sesión</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+</nav>

@@ -1,0 +1,60 @@
+.team-detail-page {
+  font-family: inherit;
+  background-color: var(--fondo-claro);
+}
+
+.upcoming-match-card:hover, .player-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+  border-color: var(--primario) !important;
+}
+
+.upcoming-match-card, .player-card {
+  transition: all 0.25s ease-in-out !important;
+}
+
+.player-card h4 {
+  color: var(--titulo);
+  margin-bottom: 0.2rem;
+  font-weight: 800;
+}
+
+.group-table th {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--texto-muted);
+  font-weight: 700 !important;
+}
+
+.group-table td {
+  vertical-align: middle;
+}
+
+.team-logo-large {
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.transition-all {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary:active, .btn-outline-primary:active {
+  transform: scale(0.95);
+}
+
+.btn-primary i, .btn-outline-primary i {
+  transition: transform 0.2s ease;
+}
+
+.btn-primary:hover i {
+  transform: scale(1.2);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

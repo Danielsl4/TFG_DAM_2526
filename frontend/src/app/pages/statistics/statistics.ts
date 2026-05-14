@@ -1,0 +1,82 @@
+import { Component, inject, OnInit, signal, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { ApiService } from '../../services/api-service';
+import { AuthService } from '../../services/auth.service';
+import { SeasonService } from '../../services/season-service';
+
+@Component({
+  selector: 'app-statistics',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  templateUrl: './statistics.html',
+  styleUrl: './statistics.css',
+})
+export class Statistics implements OnInit {
+  private apiService = inject(ApiService);
+  private authService = inject(AuthService);
+  private seasonService = inject(SeasonService);
+
+  userProfile = signal<any>(null);
+
+  stats = signal<any>(null);
+  userRanking = signal<any[]>([]);
+  isLoading = signal<boolean>(true);
+  error = signal<string | null>(null);
+  loading = {
+    userRanking: true
+  };
+
+  constructor() {
+    effect(() => {
+      const seasonId = this.seasonService.currentSeasonId();
+      if (seasonId !== null) {
+        this.fetchStatistics(seasonId);
+        this.fetchUserRanking(seasonId);
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    if (this.authService.isAuthenticated()) {
+      this.fetchUserProfile();
+    }
+  }
+
+  fetchStatistics(seasonId?: number): void {
+    const id = seasonId ?? this.seasonService.currentSeasonId();
+    if (id === null) return;
+
+    this.isLoading.set(true);
+    this.apiService.getStatistics(id).subscribe({
+      next: (data) => {
+        this.stats.set(data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error fetching league statistics:', err);
+        this.error.set('No se pudieron cargar las estadísticas generales.');
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  fetchUserRanking(seasonId?: number): void {
+    const id = seasonId ?? this.seasonService.currentSeasonId();
+    this.loading.userRanking = true;
+    this.apiService.getUserRanking(id || undefined).subscribe({
+      next: (ranking) => {
+        this.userRanking.set(ranking);
+        this.loading.userRanking = false;
+      },
+      error: () => this.loading.userRanking = false
+    });
+  }
+
+  fetchUserProfile(): void {
+    this.apiService.getUserProfile().subscribe({
+      next: (data) => this.userProfile.set(data),
+      error: (err) => console.error('Error fetching user profile for ranking highlight:', err)
+    });
+  }
+}

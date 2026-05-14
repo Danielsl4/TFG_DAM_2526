@@ -1,0 +1,362 @@
+<div class="statistics-page bg-light-blue pb-5"
+  style="min-height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+
+  <div class="container py-4">
+    <h1 class="text-center mb-4 ls-1">Estadísticas</h1>
+    <hr class="header-line mb-4">
+  </div>
+
+  @if (isLoading()) {
+  <div class="container py-4 animate-fade-in">
+    <div class="row g-4 justify-content-center">
+      @for (i of [1,2,3,4,5,6]; track $index) {
+      <div class="col-12 col-md-4">
+        <div class="stats-box shadow-sm">
+          <div class="skeleton-box skeleton-value mb-2"></div>
+          <div class="skeleton-box skeleton-text"></div>
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="stats-header border-bottom border-top py-3 bg-white text-center mt-5">
+      <div class="skeleton-box skeleton-text" style="width: 200px; height: 1.5rem;"></div>
+    </div>
+    <div class="row g-4 justify-content-center py-4">
+      @for (i of [1,2,3]; track $index) {
+      <div class="col-12 col-md-4">
+        <div class="ranking-card shadow-sm">
+          <div class="skeleton-box skeleton-text mb-3" style="width: 80%;"></div>
+          <div class="ranking-list">
+            @for (j of [1,2,3,4,5]; track $index) {
+            <div class="ranking-item d-flex align-items-center gap-2">
+              <div class="skeleton-box skeleton-circle"></div>
+              <div class="skeleton-box skeleton-text" style="width: 60%;"></div>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+  } @else if (error()) {
+  <div class="text-center py-5 m-3">
+    <i class="bi bi-exclamation-triangle fs-1 text-warning mb-3 d-block"></i>
+    <p class="text-muted fs-5">{{ error() }}</p>
+    <button class="btn btn-outline-primary rounded-pill px-4 mt-3" (click)="fetchStatistics()">
+      Reintentar
+    </button>
+  </div>
+  } @else if (stats()) {
+
+  <div class="container py-4">
+    <div class="row g-4 justify-content-center">
+      <div class="col-12 col-md-4">
+        <div class="stats-box shadow-sm">
+          <span class="value">{{ stats().global.matchesPlayed }}</span>
+          <span class="label"><img src="/icons/ball.svg" width="16" class="me-1"> Partidos jugados</span>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="stats-box shadow-sm">
+          <span class="value">{{ stats().global.totalGoals }}</span>
+          <span class="label"><img src="/icons/goal.svg" width="16" class="me-1"> Goles totales</span>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="stats-box shadow-sm">
+          <span class="value">{{ stats().global.avgGoals }}</span>
+          <span class="label"><img src="/icons/chart.svg" width="16" class="me-1"> Promedio de goles por partido</span>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="stats-box shadow-sm">
+          <span class="value">{{ stats().global.totalCleanSheets }}</span>
+          <span class="label"><img src="/icons/glove.svg" width="16" class="me-1"> Partidos sin encajar goles</span>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="stats-box shadow-sm">
+          <span class="value">{{ stats().global.totalYellows }}</span>
+          <span class="label"><img src="/icons/yellow_card.svg" width="16" class="me-1"> Tarjetas amarillas</span>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="stats-box shadow-sm">
+          <span class="value">{{ stats().global.totalReds }}</span>
+          <span class="label"><img src="/icons/red_card.svg" width="16" class="me-1"> Tarjetas rojas</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-header border-bottom border-top py-3 bg-white text-center mt-4">
+    <h2 class="mb-0 fs-4 fw-normal text-dark">Estadísticas de Equipo</h2>
+  </div>
+
+  <div class="container py-4">
+    <div class="row g-4 justify-content-center mb-4">
+      <div class="col-12 col-md-4">
+        <div class="ranking-card shadow-sm">
+          <h6 class="ranking-title"><img src="/icons/win.svg" alt="" width="24" height="24"> Equipo con más
+            victorias</h6>
+          <div class="ranking-list">
+            @for (team of stats().teamRankings.mostWins; track team.id) {
+            <div class="ranking-item clickable-item" [routerLink]="['/teams', team.id]">
+              <div class="d-flex align-items-center gap-2">
+                <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" width="32" height="32"
+                  style="object-fit: contain;" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                <span class="team-name text-truncate" style="max-width: 150px;">{{ team.name }}</span>
+              </div>
+              <span class="ranking-value">{{ team.won }}</span>
+            </div>
+            }
+            @if (stats().teamRankings.mostWins.length === 0) {
+              <div class="text-center py-4 text-muted small">No hay datos</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="ranking-card shadow-sm">
+          <h6 class="ranking-title"><img src="/icons/loss.svg" alt="" width="24" height="24"> Equipo con más derrotas
+          </h6>
+          <div class="ranking-list">
+            @for (team of stats().teamRankings.mostLosses; track team.id) {
+            <div class="ranking-item clickable-item" [routerLink]="['/teams', team.id]">
+              <div class="d-flex align-items-center gap-2">
+                <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" width="32" height="32"
+                  style="object-fit: contain;" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                <span class="team-name text-truncate" style="max-width: 150px;">{{ team.name }}</span>
+              </div>
+              <span class="ranking-value">{{ team.lost }}</span>
+            </div>
+            }
+            @if (stats().teamRankings.mostLosses.length === 0) {
+              <div class="text-center py-4 text-muted small">No hay datos</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="ranking-card shadow-sm">
+          <h6 class="ranking-title"><img src="/icons/draw.svg" alt="" width="24" height="24"> Equipo con más empates
+          </h6>
+          <div class="ranking-list">
+            @for (team of stats().teamRankings.mostDraws; track team.id) {
+            <div class="ranking-item clickable-item" [routerLink]="['/teams', team.id]">
+              <div class="d-flex align-items-center gap-2">
+                <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" width="32" height="32"
+                  style="object-fit: contain;" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                <span class="team-name text-truncate" style="max-width: 150px;">{{ team.name }}</span>
+              </div>
+              <span class="ranking-value">{{ team.drawn }}</span>
+            </div>
+            }
+            @if (stats().teamRankings.mostDraws.length === 0) {
+              <div class="text-center py-4 text-muted small">No hay datos</div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+      <div class="col-12 col-md-4">
+        <div class="ranking-card shadow-sm">
+          <h6 class="ranking-title"><img src="/icons/goal.svg" alt="" width="24" height="24"> Equipo más goleador</h6>
+          <div class="ranking-list">
+            @for (team of stats().teamRankings.bestOffense; track team.id) {
+            <div class="ranking-item clickable-item" [routerLink]="['/teams', team.id]">
+              <div class="d-flex align-items-center gap-2">
+                <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" width="32" height="32"
+                  style="object-fit: contain;" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                <span class="team-name text-truncate" style="max-width: 150px;">{{ team.name }}</span>
+              </div>
+              <span class="ranking-value">{{ team.goals_for }}</span>
+            </div>
+            }
+            @if (stats().teamRankings.bestOffense.length === 0) {
+              <div class="text-center py-4 text-muted small">No hay datos</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="ranking-card shadow-sm">
+          <h6 class="ranking-title"><img src="/icons/shield.svg" alt="" width="24" height="24"> Equipo menos goleado
+          </h6>
+          <div class="ranking-list">
+            @for (team of stats().teamRankings.bestDefense; track team.id) {
+            <div class="ranking-item clickable-item" [routerLink]="['/teams', team.id]">
+              <div class="d-flex align-items-center gap-2">
+                <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" width="32" height="32"
+                  style="object-fit: contain;" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                <span class="team-name text-truncate" style="max-width: 150px;">{{ team.name }}</span>
+              </div>
+              <span class="ranking-value">{{ team.goals_against }}</span>
+            </div>
+            }
+            @if (stats().teamRankings.bestDefense.length === 0) {
+              <div class="text-center py-4 text-muted small">No hay datos</div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-header border-bottom border-top py-3 bg-white text-center mt-4">
+    <h2 class="mb-0 fs-4 fw-normal text-dark">Estadísticas Individuales</h2>
+  </div>
+
+  <div class="container py-4 mb-5">
+    <div class="row g-4 justify-content-center">
+      <div class="col-12 col-md-4">
+        <div class="ranking-card shadow-sm">
+          <h6 class="ranking-title"><img src="/icons/goal.svg" alt="" width="24" height="24"> Máximos goleadores</h6>
+          <div class="ranking-list">
+            @for (player of stats().individualRankings.topScorers; track player.id) {
+            <div class="ranking-item clickable-item" [routerLink]="['/players', player.id]">
+              <div class="d-flex align-items-center gap-2">
+                <img [src]="player.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'" width="32" height="32"
+                  class="rounded-circle" style="object-fit: cover;"
+                  onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'">
+                <div class="d-flex flex-column">
+                  <span class="player-name fw-bold" style="font-size: 0.85rem;">{{ player.name }}</span>
+                  <span class="text-muted" style="font-size: 0.7rem;">{{ player.team_name }}</span>
+                </div>
+              </div>
+              <span class="ranking-value">{{ player.value }}</span>
+            </div>
+            }
+            @if (stats().individualRankings.topScorers.length === 0) {
+              <div class="text-center py-4 text-muted small">Sin goleadores aún</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="ranking-card shadow-sm">
+          <h6 class="ranking-title"><img src="/icons/red_card.svg" alt="" width="24" height="24"> Jugadores con más
+            tarjetas rojas</h6>
+          <div class="ranking-list">
+            @for (player of stats().individualRankings.topRedCards; track player.id) {
+            <div class="ranking-item clickable-item" [routerLink]="['/players', player.id]">
+              <div class="d-flex align-items-center gap-2">
+                <img [src]="player.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'" width="32" height="32"
+                  class="rounded-circle" style="object-fit: cover;"
+                  onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'">
+                <div class="d-flex flex-column">
+                  <span class="player-name fw-bold" style="font-size: 0.85rem;">{{ player.name }}</span>
+                  <span class="text-muted" style="font-size: 0.7rem;">{{ player.team_name }}</span>
+                </div>
+              </div>
+              <span class="ranking-value">{{ player.value }}</span>
+            </div>
+            }
+            @if (stats().individualRankings.topRedCards.length === 0) {
+              <div class="text-center py-4 text-muted small">Sin tarjetas rojas</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="ranking-card shadow-sm">
+          <h6 class="ranking-title"><img src="/icons/yellow_card.svg" alt="" width="24" height="24"> Jugadores con más
+            tarjetas amarillas</h6>
+          <div class="ranking-list">
+            @for (player of stats().individualRankings.topYellowCards; track player.id) {
+            <div class="ranking-item clickable-item" [routerLink]="['/players', player.id]">
+              <div class="d-flex align-items-center gap-2">
+                <img [src]="player.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'" width="32" height="32"
+                  class="rounded-circle" style="object-fit: cover;"
+                  onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'">
+                <div class="d-flex flex-column">
+                  <span class="player-name fw-bold" style="font-size: 0.85rem;">{{ player.name }}</span>
+                  <span class="text-muted" style="font-size: 0.7rem;">{{ player.team_name }}</span>
+                </div>
+              </div>
+              <span class="ranking-value">{{ player.value }}</span>
+            </div>
+            }
+            @if (stats().individualRankings.topYellowCards.length === 0) {
+              <div class="text-center py-4 text-muted small">Sin tarjetas amarillas</div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-header border-bottom border-top py-3 bg-white text-center mt-4">
+    <h2 class="mb-0 fs-4 fw-normal text-dark">Ranking de Usuarios (Porra)</h2>
+  </div>
+
+  <div class="container py-4 mb-5">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-8">
+        <div class="ranking-card shadow-sm bg-white">
+          <div class="ranking-list">
+            @if (loading.userRanking) {
+              <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+              </div>
+            } @else {
+              @if (userRanking().length > 0) {
+                <div class="ranking-columns">
+                  @for (rank of userRanking(); track rank.id; let i = $index) {
+                    <div class="ranking-item-wrapper">
+                      <div class="ranking-item d-flex align-items-center justify-content-between py-3 px-3 border-bottom" 
+                           [class.border-bottom-0]="$last">
+                        <div class="d-flex align-items-center gap-3">
+                          <div class="rank-number d-flex align-items-center justify-content-center rounded-circle fw-bold"
+                               [class.bg-warning]="i === 0" [class.text-white]="i === 0"
+                               [class.bg-secondary]="i === 1" [class.text-white]="i === 1"
+                               [class.bg-bronze]="i === 2" [class.text-white]="i === 2"
+                               [class.bg-light]="i > 2" [class.text-muted]="i > 2"
+                               style="width: 32px; height: 32px; font-size: 0.9rem;">
+                            {{ i + 1 }}
+                          </div>
+                          <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                 style="width: 32px; height: 32px; font-size: 0.8rem;">
+                              {{ rank.username.charAt(0).toUpperCase() }}
+                            </div>
+                            @if (userProfile()?.user?.username === rank.username) {
+                              <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-1" style="font-size: 0.6rem;">TÚ</span>
+                            }
+                            <span class="fw-semibold text-truncate" 
+                                  [class.text-dark]="userProfile()?.user?.username === rank.username"
+                                  [class.fw-bold]="userProfile()?.user?.username === rank.username"
+                                  style="max-width: 100px;">{{ rank.username }}</span>
+                          </div>
+                        </div>
+                        <div class="text-end">
+                          <span class="fw-bold text-dark">{{ rank.points }}</span>
+                          <span class="text-muted small ms-1">pts</span>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="text-center py-5">
+                  <i class="bi bi-person-x fs-1 text-light-gray mb-3 d-block"></i>
+                  <p class="text-muted">No hay participaciones registradas en esta temporada.</p>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>

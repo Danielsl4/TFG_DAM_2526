@@ -1,0 +1,266 @@
+.admin-page {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-box i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+}
+
+.search-box input {
+  padding: 0.8rem 1rem 0.8rem 2.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  width: 300px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.search-box input:focus {
+  border-color: var(--secundario);
+}
+
+.table-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th {
+  background: #f8f9fa;
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #666;
+  border-bottom: 2px solid #eee;
+}
+
+.admin-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+
+.user-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--titulo);
+}
+
+.role-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.role-badge.admin {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.role-badge.referee {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.role-badge.user {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.points-badge {
+  background: var(--primario-subtle);
+  color: var(--primario-oscuro);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.actions-wrapper {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.actions-cell {
+  padding: 1rem !important;
+}
+
+.admin-table th:last-child,
+.admin-table td:last-child {
+  text-align: center;
+  width: 120px;
+}
+
+.btn-icon {
+  border: none;
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.btn-icon.edit {
+  background: rgba(0, 188, 212, 0.1);
+  color: #00bcd4;
+}
+
+.btn-icon.edit:hover {
+  background: #00bcd4;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 188, 212, 0.4);
+}
+
+.btn-icon.delete {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+.btn-icon.delete:hover {
+  background: #f44336;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: #f9f9f9;
+  border-top: 1px solid #eee;
+  border-radius: 0 0 12px 12px;
+}
+
+.btn-page {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: white;
+  color: #333;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-page:hover:not(:disabled) {
+  background: var(--secundario-subtle);
+  border-color: var(--secundario);
+  color: var(--secundario-oscuro);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--secundario-subtle);
+}
+
+.btn-page:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f5f5f5;
+}
+
+.page-info {
+  font-size: 0.95rem;
+  color: #666;
+}
+
+.page-info strong {
+  color: var(--titulo);
+  background: var(--secundario-subtle);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--secundario-subtle);
+}
+
+.total-count {
+  margin-left: 10px;
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .search-box {
+    width: 100%;
+    order: 2;
+  }
+
+  .search-box input {
+    width: 100%;
+  }
+
+  .pagination-controls {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+}

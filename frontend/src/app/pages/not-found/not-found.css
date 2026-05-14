@@ -1,0 +1,117 @@
+.not-found-container {
+  min-height: calc(100vh - 70px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradiante-principal);
+  position: relative;
+  overflow: hidden;
+  padding: 2rem;
+}
+
+.glass-card {
+  background: rgba(22, 27, 42, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--bordes-oscuros);
+  border-radius: 24px;
+  max-width: 600px;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.error-code-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.error-code {
+  font-size: 8rem;
+  font-weight: 900;
+  background: var(--gradiante-acento);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
+  text-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.error-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 150%;
+  height: 150%;
+  background: radial-gradient(circle, var(--primario-subtle) 0%, rgba(0, 174, 239, 0) 70%);
+  z-index: 1;
+  filter: blur(20px);
+  animation: pulse-glow 3s infinite alternate;
+}
+
+@keyframes pulse-glow {
+  0% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+.neon-btn {
+  background: transparent;
+  color: var(--texto-blanco);
+  border: 2px solid var(--primario);
+  box-shadow: 0 0 15px var(--primario-subtle), inset 0 0 10px var(--primario-subtle);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.neon-btn:hover {
+  background: var(--primario);
+  color: var(--texto-blanco);
+  box-shadow: 0 0 25px rgba(0, 174, 239, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Decorative background elements */
+.cyber-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  z-index: 1;
+  opacity: 0.4;
+}
+
+.circle-1 {
+  width: 300px;
+  height: 300px;
+  background-color: var(--primario);
+  top: -100px;
+  left: -100px;
+  animation: float 8s infinite alternate ease-in-out;
+}
+
+.circle-2 {
+  width: 400px;
+  height: 400px;
+  background-color: var(--secundario);
+  bottom: -150px;
+  right: -100px;
+  animation: float 10s infinite alternate-reverse ease-in-out;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(30px, 50px); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

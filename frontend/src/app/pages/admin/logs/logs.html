@@ -1,0 +1,66 @@
+<div class="admin-page-header">
+  <div class="header-content">
+    <h1>Historial de Auditoría</h1>
+    <p class="subtitle">Registro completo de todas las acciones del panel</p>
+  </div>
+</div>
+
+<div class="filters-bar shadow-sm">
+  <div class="filter-group">
+    <i class="fas fa-search"></i>
+    <input type="text" [(ngModel)]="userSearch" (input)="onSearchInput()" placeholder="Buscar por usuario...">
+  </div>
+  <div class="filter-group">
+    <i class="fas fa-calendar-day"></i>
+    <input type="date" [(ngModel)]="dateSearch" (change)="onFilter()">
+  </div>
+  <button class="btn-clear" (click)="clearFilters()" *ngIf="userSearch || dateSearch">
+    <i class="fas fa-times"></i> Limpiar
+  </button>
+</div>
+
+<div class="admin-card shadow">
+  <div class="activity-list">
+    @for (log of logs; track log.id) {
+    <div class="activity-item">
+      <div class="log-dot"></div>
+      <div class="log-content">
+        <p class="log-text">
+          <strong>{{ log.username || 'Sistema' }}</strong> {{ formatAction(log.action) }}
+          @if (log.details?.name) {
+            <a [routerLink]="getEntityLink(log)" [queryParams]="getSearchParam(log)" class="entity-link">
+              "{{ log.details.name }}"
+            </a>
+          } @else if (log.entity_type) {
+            <a [routerLink]="getEntityLink(log)" class="entity-link">
+              en {{ translateEntity(log.entity_type) }} #{{ log.entity_id }}
+            </a>
+          }
+        </p>
+        <span class="log-date">{{ log.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+    </div>
+    }
+    @if (logs.length === 0 && !loading) {
+    <div class="empty-activity">
+      No hay actividad registrada.
+    </div>
+    }
+  </div>
+
+  <div class="pagination">
+    <button class="btn-page" (click)="prevPage()" [disabled]="page === 1">
+      <i class="fas fa-chevron-left"></i> Anterior
+    </button>
+    <span class="page-info">Página {{ page }} de {{ totalPages }}</span>
+    <button class="btn-page" (click)="nextPage()" [disabled]="page * limit >= total">
+      Siguiente <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+</div>
+
+@if (loading) {
+<div class="loading-overlay">
+  <div class="spinner"></div>
+</div>
+}

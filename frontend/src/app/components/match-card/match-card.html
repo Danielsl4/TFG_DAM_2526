@@ -1,0 +1,95 @@
+@if (match) {
+<div class="card match-card-premium border-0 rounded-4 shadow-sm p-3 h-100 d-flex flex-column" style="cursor: pointer;"
+  [routerLink]="['/matches/detail', match.id]">
+
+  <!-- Top: Location & Phase -->
+  <div class="card-header-v">
+    <span class="text-xxs text-muted">
+      <i class="bi bi-geo-alt-fill me-1"></i>
+      {{ match.field?.name || 'Por definir' }}
+    </span>
+    @if (match.phase) {
+    <span class="badge rounded-pill text-bg-light border text-xxs font-weight-bold">
+      {{ match.phase.split('_').join(' ') | titlecase }}
+    </span>
+    }
+  </div>
+
+  <!-- Middle: Teams Row -->
+  <div class="teams-display d-flex align-items-center justify-content-between mb-4">
+    <div class="team-block text-center flex-1">
+      <img [src]="match.homeTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" alt="" class="team-img mb-2"
+        onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+      <div class="team-label fw-bold text-truncate px-1" [title]="match.homeTeam?.name || match.homeTeamPlaceholder">
+        {{ match.homeTeam?.name || match.homeTeamPlaceholder || 'TBD' }}
+      </div>
+    </div>
+
+    <div class="vs-badge-container flex-shrink-0 mx-2">
+      <div class="vs-circle">VS</div>
+    </div>
+
+    <div class="team-block text-center flex-1">
+      <img [src]="match.awayTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" alt="" class="team-img mb-2"
+        onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+      <div class="team-label fw-bold text-truncate px-1" [title]="match.awayTeam?.name || match.awayTeamPlaceholder">
+        {{ match.awayTeam?.name || match.awayTeamPlaceholder || 'TBD' }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: Countdown Square Mode or Score -->
+  <div class="action-zone text-center p-2 rounded-3" style="background: rgba(0,0,0,0.02);">
+    @if (match.status === 'pendiente' || !match.status) {
+    <div class="countdown-squares d-flex justify-content-center gap-2 mb-2">
+      @if (countdownText.includes('d')) {
+      <div class="sq-tile">
+        <div class="sq-val">{{ countdownText.split('d')[0] }}</div>
+        <div class="sq-unit">DÍAS</div>
+      </div>
+      }
+      <div class="sq-tile">
+        <div class="sq-val">{{ countdownText.includes('d') ? countdownText.split('d ')[1].split('h')[0] :
+          countdownText.split('h')[0] }}</div>
+        <div class="sq-unit">HRS</div>
+      </div>
+      <div class="sq-tile">
+        <div class="sq-val">{{ countdownText.split('h ')[1].split('m')[0] }}</div>
+        <div class="sq-unit">MIN</div>
+      </div>
+      <div class="sq-tile">
+        <div class="sq-val">{{ countdownText.split('m ')[1].split('s')[0] }}</div>
+        <div class="sq-unit">SEG</div>
+      </div>
+    </div>
+    <div class="pending-date-badge mt-2">
+      <i class="bi bi-calendar3 me-1"></i>
+      {{ match.date | date: 'EEEE d, MMM - HH:mm' | titlecase }}
+    </div>
+    } @else {
+    <div class="final-score-box d-flex flex-column align-items-center" [class.is-live]="match.status === 'en_curso'" [class.is-finished]="match.status === 'finalizado'">
+      <div class="d-flex align-items-center gap-3">
+        <span class="fs-1 fw-black score-val">{{ match.homeGoals ?? 0 }}</span>
+        <span class="fs-3 text-muted opacity-50">:</span>
+        <span class="fs-1 fw-black score-val">{{ match.awayGoals ?? 0 }}</span>
+      </div>
+      @if ((match.homePenaltyGoals ?? 0) > 0 || (match.awayPenaltyGoals ?? 0) > 0) {
+      <div class="badge bg-warning text-dark rounded-pill px-3 py-1 mt-1 text-xxs shadow-sm">
+        PENALTIS: {{ match.homePenaltyGoals }} - {{ match.awayPenaltyGoals }}
+      </div>
+      }
+      <div class="text-xxs mt-2 fw-bold text-uppercase tracking-widest d-flex align-items-center gap-1 status-label">
+        @if (match.status === 'en_curso') {
+          <span class="live-dot-small animate-pulse"></span>
+        }
+        {{ match.status === 'en_curso' ? 'En Vivo' : 'Finalizado' }}
+      </div>
+    </div>
+    }
+  </div>
+
+  <div class="mt-auto pt-3">
+    <app-match-voting [match]="match"></app-match-voting>
+  </div>
+</div>
+}

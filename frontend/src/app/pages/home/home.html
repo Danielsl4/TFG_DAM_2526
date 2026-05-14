@@ -1,0 +1,255 @@
+<div class="home-container">
+  <!-- Hero Section -->
+  <header class="hero-section text-light">
+    <div class="hero-overlay"></div>
+    <div class="container position-relative pt-2 pb-5">
+      <div class="row align-items-center pt-3 pb-5">
+        <div class="col-lg-6 text-center text-lg-start mb-5 mb-lg-0 animate-fade-in-left">
+          <h1 class="display-3 fw-bold mb-3 landing-title">
+            Torneo <span class="text-primary-accent">Fútbol Sala 24h</span>
+          </h1>
+          <p class="lead mb-4 text-white-50">Jerez de los Caballeros</p>
+          <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+            <a routerLink="/matches" class="btn btn-primary-accent btn-lg px-4 rounded-pill shadow-lg">Ver Partidos</a>
+            <a routerLink="/standings" class="btn btn-outline-light btn-lg px-4 rounded-pill border-2">Clasificación</a>
+          </div>
+        </div>
+        <div class="col-lg-6 text-center animate-zoom-in">
+          @if (liveMatches.length > 0) {
+          <div class="live-hero-wrapper">
+            <div class="live-scroll-indicator d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-danger rounded-pill pulse-badge">EN VIVO ({{ liveMatches.length }})</span>
+              @if (liveMatches.length > 1) {
+              <div class="carousel-controls d-flex gap-2">
+                <button (click)="scrollLive(-1)" class="btn-ctrl"><i class="bi bi-chevron-left"></i></button>
+                <button (click)="scrollLive(1)" class="btn-ctrl"><i class="bi bi-chevron-right"></i></button>
+              </div>
+              }
+            </div>
+            <div class="live-horizontal-grid" id="liveGrid">
+              @for (match of liveMatches; track match.id) {
+              <div class="live-card-premium">
+                <div class="live-card-header d-flex justify-content-between x-small text-white-50">
+                  <span>{{ match.phase.split('_').join(' ') | titlecase }}</span>
+                  <span><i class="bi bi-geo-alt-fill"></i> {{ match.field.name }}</span>
+                </div>
+                <div class="live-card-body d-flex align-items-center justify-content-between gap-2 my-2">
+                  <div class="team-unit">
+                    <img
+                      [src]="match.homeTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'"
+                      class="team-logo-hero" alt=""
+                      onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                    <div class="team-name">{{ match.homeTeam?.name }}</div>
+                  </div>
+                  <div class="score-unit">
+                    <div class="score-display">{{ match.homeGoals }} : {{ match.awayGoals }}</div>
+                    <div class="live-timer">En juego</div>
+                  </div>
+                  <div class="team-unit">
+                    <img
+                      [src]="match.awayTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'"
+                      class="team-logo-hero" alt=""
+                      onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                    <div class="team-name">{{ match.awayTeam?.name }}</div>
+                  </div>
+                </div>
+                <div class="live-card-footer mt-auto">
+                  <a [routerLink]="['/matches/detail', match.id]" class="btn-live-action">Detalles del Partido</a>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+          } @else {
+          <div class="logo-container">
+            <img
+              src="https://res.cloudinary.com/dyxl1d54d/image/upload/v1777509247/tfg_futsal/general/logo_oficial_tfg.webp"
+              alt="Logo Torneo" class="hero-logo img-fluid">
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Matches Section -->
+  <section class="matches-slider-section py-5">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+          <h2 class="section-title mb-1">
+            Próximos Partidos
+            @if (hasLiveMatches) {
+            <span class="live-badge-title">EN VIVO</span>
+            }
+          </h2>
+          <div class="section-divider"></div>
+        </div>
+        <a routerLink="/matches"
+          class="text-decoration-none text-primary-accent fw-bold text-uppercase text-xs tracking-wider">Ver todos <i
+            class="bi bi-arrow-right"></i></a>
+      </div>
+
+      <div class="matches-slider-wrapper">
+        @if (loading.matches) {
+        <div class="d-flex gap-3 overflow-hidden">
+          @for (i of [1,2,3,4]; track $index) {
+          <div class="skeleton-match-card"></div>
+          }
+        </div>
+        } @else {
+        <div class="matches-scroll-container">
+          @for (match of upcomingMatches; track match.id) {
+          <div class="match-item" [class.match-live-glow]="match.status === 'en_curso'">
+            <app-match-card [match]="match"></app-match-card>
+          </div>
+          } @empty {
+          <div class="text-center py-5 w-100">
+            <p class="text-muted">No hay partidos programados próximamente.</p>
+          </div>
+          }
+        </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Content Section (Standings and Stats) -->
+  <section class="overview-section py-5 bg-light-gradient">
+    <div class="container">
+      <div class="row g-4">
+        <!-- Standings Preview -->
+        <div class="col-lg-4">
+          <div class="overview-card h-100 p-4">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+              <h3 class="h5 fw-bold mb-0">Líderes por Grupo</h3>
+              <a routerLink="/standings" class="text-decoration-none text-xs fw-bold text-primary">Ver todos</a>
+            </div>
+
+            <div class="standings-list">
+              @if (loading.standings) {
+              @for (i of [1,2,3,4,5]; track $index) {
+              <div class="skeleton-scorer-item mb-3"></div>
+              }
+              } @else {
+              @for (team of standings.slice(0, 5); track team.id) {
+              <div class="overview-item cursor-pointer" [routerLink]="['/teams', team.id]">
+                <div class="overview-item-start">
+                  <span class="fw-bold text-primary opacity-50 text-xs">{{team.groupName}}</span>
+                </div>
+                <div class="overview-item-icon">
+                  <img
+                    [src]="team.team_logo || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'"
+                    class="team-logo-mini" alt=""
+                    onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                </div>
+                <div class="overview-item-content">
+                  <div class="fw-bold text-truncate" style="max-width: 150px;">{{team.team_name}}</div>
+                  <div class="text-xs text-muted">Líder del grupo</div>
+                </div>
+                <div class="overview-item-end text-dark">
+                  {{team.points}} <small class="fw-normal">PTS</small>
+                </div>
+              </div>
+              }
+              @if (standings.length === 0) {
+              <div class="text-center py-4 text-muted">Datos no disponibles</div>
+              }
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Scorers (Pichichi) -->
+        <div class="col-lg-4">
+          <div class="overview-card h-100 p-4">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+              <h3 class="h5 fw-bold mb-0">Pichichi</h3>
+              <a routerLink="/statistics" class="text-decoration-none text-xs fw-bold text-primary">Todas las stats</a>
+            </div>
+
+            <div class="scorers-list">
+              @if (loading.statistics) {
+              @for (i of [1,2,3,4,5]; track $index) {
+              <div class="skeleton-scorer-item mb-3"></div>
+              }
+              } @else {
+              @for (player of topScorers.slice(0, 5); track player.id) {
+              <div class="overview-item cursor-pointer" [routerLink]="['/players', player.id]">
+                <div class="overview-item-start">
+                  <div class="rank-pill bg-primary text-white">{{ $index + 1 }}</div>
+                </div>
+                <div class="overview-item-icon">
+                  <img
+                    [src]="player.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'"
+                    class="player-photo-mini" [alt]="player.name"
+                    onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'">
+                </div>
+                <div class="overview-item-content">
+                  <div class="fw-bold text-truncate">{{player.name}}</div>
+                  <div class="text-xs text-muted text-truncate">{{player.team_name}}</div>
+                </div>
+                <div class="overview-item-end text-dark">
+                  {{player.value}} <small class="fw-normal">G</small>
+                </div>
+              </div>
+              }
+              @if (topScorers.length === 0) {
+              <div class="text-center py-4 text-muted">Datos no disponibles</div>
+              }
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Predictor Ranking (New) -->
+        <div class="col-lg-4">
+          <div class="overview-card h-100 p-4">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+              <div class="d-flex align-items-center gap-2">
+                <h3 class="h5 fw-bold mb-0">Top Pronosticadores</h3>
+                <span class="badge bg-primary rounded-pill" style="font-size: 0.6rem;">PORRA</span>
+              </div>
+            </div>
+
+            <div class="ranking-list">
+              @if (loading.userRanking) {
+              @for (i of [1,2,3,4,5]; track $index) {
+              <div class="skeleton-scorer-item mb-3"></div>
+              }
+              } @else {
+              @if (userRanking.length === 0) {
+              <div class="text-center py-4 text-muted">
+                <p class="mb-0">¡Sé el primero en puntuar!</p>
+                <small>Vota en los próximos partidos</small>
+              </div>
+              } @else {
+              @for (user of userRanking.slice(0, 5); track user.id) {
+              <div class="overview-item">
+                <div class="overview-item-start">
+                  <div class="rank-pill"
+                    [ngClass]="{'bg-warning text-dark': $index === 0, 'bg-light border text-muted': $index > 0}">
+                    {{ $index + 1 }}
+                  </div>
+                </div>
+                <div class="overview-item-icon">
+                  <i class="bi bi-trophy text-muted opacity-25 fs-5"></i>
+                </div>
+                <div class="overview-item-content">
+                  <div class="fw-bold text-truncate d-block">{{user.username}}</div>
+                  <div class="text-xs text-muted">Pronosticador</div>
+                </div>
+                <div class="overview-item-end">
+                  <span class="badge bg-dark-subtle text-dark fw-bold">{{user.points}} PTS</span>
+                </div>
+              </div>
+              }
+              }
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

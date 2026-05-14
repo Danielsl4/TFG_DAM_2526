@@ -1,0 +1,64 @@
+@if (match) {
+@if (match.votingStats && match.votingStats.total > 0 || (isAuthenticated() && (match.status === 'pendiente' ||
+!match.status))) {
+<div class="voting-section mt-auto pt-3 border-top" (click)="$event.stopPropagation()">
+  <!-- Results Bar (Always present space) -->
+  <div class="voting-results-container" style="min-height: 45px;">
+    @if (match.votingStats && match.votingStats.total > 0) {
+    <div class="voting-results animate-fade-in">
+      <div class="d-flex justify-content-between text-xxs mb-1">
+        <span [class.text-primary]="match.userVote === 'local'">Local {{getPercentage('local')}}%</span>
+        <span [class.text-muted]="match.userVote === 'empate'">Empate {{getPercentage('draw')}}%</span>
+        <span [class.text-danger]="match.userVote === 'visitante'">Visitante {{getPercentage('away')}}%</span>
+      </div>
+      <div class="progress-stacked"
+        style="height: 6px; background: rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden;">
+        <div class="progress" role="progressbar" [style.width.%]="getPercentage('local')"
+          style="height: 100%; border-radius: 0;">
+          <div class="progress-bar bg-primary"></div>
+        </div>
+        <div class="progress" role="progressbar" [style.width.%]="getPercentage('draw')"
+          style="height: 100%; border-radius: 0;">
+          <div class="progress-bar bg-secondary"></div>
+        </div>
+        <div class="progress" role="progressbar" [style.width.%]="getPercentage('away')"
+          style="height: 100%; border-radius: 0;">
+          <div class="progress-bar bg-danger"></div>
+        </div>
+      </div>
+    </div>
+    } @else {
+    <div class="text-center py-2">
+      <span class="text-xxs text-muted opacity-50">Sin votos registrados</span>
+    </div>
+    }
+  </div>
+
+  <!-- Action Area (Prompt or Status) -->
+  <div class="voting-action-container mt-2 d-flex flex-column justify-content-center" style="min-height: 50px;">
+    @if (isAuthenticated() && (match.status === 'pendiente' || !match.status) && !match.userVote) {
+    @if (match.homeTeam && match.awayTeam) {
+    <div class="d-flex justify-content-between gap-1 btn-group-vote">
+      <button class="btn btn-vote btn-1" (click)="onVote($event, 'local')" [disabled]="isVoting()">1</button>
+      <button class="btn btn-vote btn-x" (click)="onVote($event, 'empate')" [disabled]="isVoting()">X</button>
+      <button class="btn btn-vote btn-2" (click)="onVote($event, 'visitante')" [disabled]="isVoting()">2</button>
+    </div>
+    } @else {
+    <div class="text-center"><span class="badge text-bg-light border text-xxs">Pendiente de equipos</span></div>
+    }
+    } @else if (match.userVote) {
+    <div class="text-center animate-fade-in">
+      <div class="text-xxs text-muted mb-1 text-uppercase fw-bold">Tu predicción</div>
+      <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-1">
+        ✓ {{match.userVote | titlecase}}
+      </span>
+    </div>
+    } @else if (!isAuthenticated()) {
+    <div class="text-center py-1">
+      <span class="text-xxs text-muted">Inicia sesión para votar</span>
+    </div>
+    }
+  </div>
+</div>
+}
+}

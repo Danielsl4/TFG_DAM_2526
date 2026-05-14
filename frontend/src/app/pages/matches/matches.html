@@ -1,0 +1,77 @@
+<div class="container py-4">
+  <h1 class="text-center mb-4 ls-1">Calendario de Partidos</h1>
+  <hr class="header-line mb-4">
+
+  <div class="d-flex justify-content-center gap-2 mb-4 flex-wrap">
+    @for (day of days; track day) {
+    <button class="btn-filter-text" [class.active]="selectedDay() == day" (click)="setFilter(day)">
+      {{ day }}
+    </button>
+    }
+  </div>
+
+  <hr class="header-line mb-4">
+
+  <div class="row g-3">
+    @if (isLoading()) {
+      @for (i of [1,2,3,4,5,6]; track $index) {
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="bg-white rounded-3 p-3 shadow-sm border border-light" style="height: 180px;">
+            <div class="d-flex justify-content-between mb-3">
+              <div class="skeleton-box" style="width: 80px; height: 0.8rem;"></div>
+              <div class="skeleton-box" style="width: 40px; height: 0.8rem;"></div>
+            </div>
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="skeleton-box skeleton-circle"></div>
+                <div class="skeleton-box" style="width: 60%; height: 1rem;"></div>
+              </div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="skeleton-box skeleton-circle"></div>
+                <div class="skeleton-box" style="width: 60%; height: 1rem;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    } @else {
+      @for (match of paginatedMatches(); track match.id) {
+      <div class="col-12 col-md-6 col-lg-4">
+        <app-match-card [match]="match"></app-match-card>
+      </div>
+      } @empty {
+      <div class="col-12 text-center py-5">
+        <i class="bi bi-calendar-x fs-1 text-muted mb-3 d-block"></i>
+        <p class="text-muted fs-5">No hay partidos programados para el {{ selectedDay() }}.</p>
+      </div>
+      }
+    }
+  </div>
+
+  @if (totalPages() > 1) {
+  <nav class="mt-5 d-flex justify-content-center">
+    <ul class="pagination pagination-md gap-1">
+      <li class="page-item" [class.disabled]="currentPage() == 1">
+        <button class="page-link border-0 rounded-3 shadow-sm" (click)="goToPage(currentPage() - 1)">
+          <i class="bi bi-chevron-left text-primary"></i>
+        </button>
+      </li>
+
+      @for (p of pages(); track p) {
+      <li class="page-item">
+        <button class="page-link border-0 rounded-3 shadow-sm px-3" [class.active-page]="currentPage() == p"
+          (click)="goToPage(p)">
+          {{ p }}
+        </button>
+      </li>
+      }
+
+      <li class="page-item" [class.disabled]="currentPage() == totalPages()">
+        <button class="page-link border-0 rounded-3 shadow-sm" (click)="goToPage(currentPage() + 1)">
+          <i class="bi bi-chevron-right text-primary"></i>
+        </button>
+      </li>
+    </ul>
+  </nav>
+  }
+</div>

@@ -1,0 +1,160 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--gradiante-principal) !important;
+  border-bottom: none;
+  transition: all 0.3s ease-in-out;
+  padding: 0.25rem 1rem; /* Más compacto */
+}
+
+/* Decorative line at the bottom, same as footer top */
+.navbar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--gradiante-acento);
+  z-index: 1001;
+}
+
+.last-update-pill {
+  background: var(--primario-subtle);
+  backdrop-filter: blur(4px);
+  color: var(--primario);
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--bordes-oscuros);
+  text-transform: uppercase;
+}
+
+.update-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--primario);
+  border-radius: 50%;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 var(--primario-subtle);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(0, 174, 239, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 var(--primario-subtle);
+  }
+}
+
+.nav-link {
+  position: relative;
+  transition: color 0.3s ease;
+  margin: 0 5px;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: var(--secundario);
+  transition: width 0.3s ease;
+}
+
+@media (max-width: 991px) {
+  .navbar-collapse {
+    background: rgba(11, 14, 23, 0.95);
+    backdrop-filter: blur(10px);
+    margin: 0 -1rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--bordes-oscuros);
+    border-top: 1px solid var(--bordes-oscuros);
+    margin-top: 0.5rem;
+  }
+
+  .navbar-nav {
+    text-align: left;
+  }
+
+  .nav-item {
+    padding: 0.25rem 0; /* Un poco más compacto */
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+    padding-left: 10px;
+  }
+
+  .nav-item:has(.active) {
+    border-left-color: var(--secundario);
+    background: rgba(247, 148, 29, 0.05);
+  }
+
+  .nav-link {
+    display: block;
+    width: 100%;
+  }
+
+  .nav-link::after {
+    display: none; /* Quitamos la línea de abajo en móvil para usar el borde izquierdo */
+  }
+
+  .footer-logo {
+    width: 60px !important;
+    height: 60px !important;
+  }
+}
+
+.nav-link:hover {
+  color: var(--secundario) !important;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* Specific styling for the logout link */
+.nav-link.text-danger:hover {
+  color: var(--error) !important;
+}
+
+.nav-link.text-danger::after {
+  background-color: var(--error);
+}
+
+.footer-logo {
+  width: 75px;
+  height: 75px;
+  transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover img, .footer-logo:hover {
+  transform: scale(1.05);
+}
+
+/* Custom Hamburger Icon Color */
+.navbar-toggler {
+  border-color: var(--bordes-oscuros);
+  padding: 6px;
+}
+
+.navbar-toggler:focus {
+  box-shadow: 0 0 0 0.25rem var(--primario-subtle);
+  outline: none;
+}
+
+.navbar-toggler-icon {
+  /* Forcing the icon to be bright white */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}

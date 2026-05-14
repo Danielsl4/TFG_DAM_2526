@@ -1,0 +1,256 @@
+<div class="team-detail-page animate-fade-in bg-light pb-5" style="min-height: 100vh;">
+  @if (isLoading()) {
+  <div class="animate-fade-in">
+    <!-- Header Skeleton -->
+    <div class="container-fluid border-bottom text-center py-4 bg-white">
+      <div class="skeleton-box skeleton-circle mb-3" style="width: 120px; height: 120px;"></div>
+      <div class="d-flex justify-content-center">
+        <div class="skeleton-box" style="width: 250px; height: 2rem;"></div>
+      </div>
+    </div>
+
+    <!-- Stats Skeleton -->
+    <div class="container py-4">
+      <div class="row g-3 justify-content-center mx-auto" style="max-width: 800px;">
+        @for (i of [1,2,3,4]; track $index) {
+        <div class="col-6 col-md-3">
+          <div class="card shadow-sm border border-light rounded-4 text-center py-4 bg-white">
+            <div class="skeleton-box mx-auto mb-2" style="width: 40px; height: 1.5rem;"></div>
+            <div class="skeleton-box mx-auto" style="width: 60px; height: 0.8rem;"></div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Section Title Skeleton -->
+    <div class="section-title text-center py-3 border-bottom border-top mt-3 bg-light">
+      <div class="skeleton-box" style="width: 150px; height: 1.2rem;"></div>
+    </div>
+
+    <!-- Rankings Skeleton -->
+    <div class="container py-4">
+      <div class="mx-auto mb-4" style="max-width: 900px;">
+        <div class="skeleton-box mb-3" style="width: 200px; height: 1.2rem;"></div>
+        <div class="bg-white rounded-3 p-3 shadow-sm border border-light">
+          @for (i of [1,2,3,4]; track $index) {
+          <div class="d-flex justify-content-between py-2 border-bottom">
+            <div class="skeleton-box" style="width: 30%;"></div>
+            <div class="skeleton-box" style="width: 10%;"></div>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  } @else if (error()) {
+  <div class="text-center py-5 m-3">
+    <i class="bi bi-exclamation-circle fs-1 text-danger mb-3 d-block"></i>
+    <p class="text-danger fs-5">{{ error() }}</p>
+    <button class="btn btn-outline-secondary rounded-pill px-4 mt-3" routerLink="/matches">
+      Volver al calendario
+    </button>
+  </div>
+  } @else if (team) {
+
+  <div class="section-header text-center py-3 border-bottom" style="background-color: var(--bg-gris-claro);">
+    <h2 class="mb-0 fs-5 fw-normal text-muted">Información del equipo</h2>
+  </div>
+
+  <div class="container-fluid border-bottom text-center py-4" style="background-color: var(--bg-blanco-azulado);">
+    <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" [alt]="team.name" class="team-logo-large mb-3"
+      style="width: 120px; height: 120px; object-fit: contain;" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+    <div class="d-flex flex-column align-items-center gap-2">
+      <h3 class="fw-bold mb-0 text-dark">{{ team.name }}</h3>
+      @if (isLogged()) {
+      <button class="btn btn-sm rounded-pill d-flex align-items-center gap-2 px-3 py-1 shadow-sm transition-all"
+          [class.btn-outline-primary]="!isFollowing()"
+          [class.btn-primary]="isFollowing()"
+          (click)="toggleFollow()"
+          [disabled]="isProcessingFollow()">
+        <i class="bi" [class.bi-heart]="!isFollowing()" [class.bi-heart-fill]="isFollowing()"></i>
+        <span class="fw-bold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+          {{ isFollowing() ? 'Siguiendo' : 'Seguir' }}
+        </span>
+      </button>
+      }
+    </div>
+    @if (team.kit_color) {
+    <span class="badge bg-light text-secondary border mt-2 opacity-75">Color de la equipación: {{ team.kit_color
+      }}</span>
+    }
+  </div>
+
+  <div class="section-title text-center py-3 border-bottom border-top mt-3" style="background-color: var(--bg-gris-claro);">
+    <h2 class="mb-0 fs-5 fw-normal text-muted">Clasificación</h2>
+  </div>
+
+  <div class="container py-4">
+    @if (groupName() && groupStandings().length > 0) {
+    <div class="mx-auto mb-4" style="max-width: 900px;">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <h2 class="h5 mb-0 fw-bold">Clasificación Grupo {{ groupName() }}</h2>
+      </div>
+      <app-standings-table 
+        [data]="groupStandings()" 
+        [bestFourthId]="bestFourthId()">
+      </app-standings-table>
+    </div>
+    } @else {
+    <p class="text-center text-muted py-3">No hay datos de clasificación para este grupo.</p>
+    }
+  </div>
+
+  <div class="section-title text-center py-3 border-bottom border-top mt-3" style="background-color: var(--bg-gris-claro);">
+    <h2 class="mb-0 fs-5 fw-normal text-muted">Estadísticas</h2>
+  </div>
+
+  <div class="container py-4">
+    <div class="row g-3 justify-content-center mb-2 mx-auto" style="max-width: 800px;">
+
+      <div class="col-6 col-md-3">
+        <div
+          class="card shadow-sm border border-light rounded-4 text-center py-3 bg-white h-100 d-flex flex-column justify-content-center">
+          <h4 class="mb-1 fw-bold text-dark">{{ team.stats?.played || 0 }}</h4>
+          <div class="text-muted small">Partidos Jugados</div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div
+          class="card shadow-sm border border-light rounded-4 text-center py-3 bg-white h-100 d-flex flex-column justify-content-center">
+          <h4 class="mb-1 fw-bold text-dark">
+            <span class="text-success">{{ team.stats?.won || 0 }}</span> -
+            <span class="text-secondary">{{ team.stats?.drawn || 0 }}</span> -
+            <span class="text-danger">{{ team.stats?.lost || 0 }}</span>
+          </h4>
+          <div class="text-muted small">V - E - D</div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div
+          class="card shadow-sm border border-light rounded-4 text-center py-3 bg-white h-100 d-flex flex-column justify-content-center">
+          <h4 class="mb-1 fw-bold text-dark w-100 d-flex justify-content-center gap-2 align-items-center">
+            <span>{{ team.stats?.goals_for || 0 }}</span>
+            <span class="text-muted" style="font-size: 0.8rem;">/</span>
+            <span>{{ team.stats?.goals_against || 0 }}</span>
+          </h4>
+          <div class="text-muted small">
+            Goles (Dif: <span [class.text-success]="(team.stats?.goal_difference || 0) > 0"
+              [class.text-danger]="(team.stats?.goal_difference || 0) < 0">{{ team.stats?.goal_difference > 0 ? '+' : ''
+              }}{{ team.stats?.goal_difference || 0 }}</span>)
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div
+          class="card shadow-sm border border-light rounded-4 text-center py-3 bg-white h-100 d-flex flex-column justify-content-center">
+          <div class="d-flex justify-content-center gap-3 align-items-center mb-1">
+            <div class="d-flex flex-column align-items-center">
+              <span class="fw-bold text-dark fs-5">{{ team.stats?.yellow_cards || 0 }}</span>
+              <img src="/icons/yellow_card.svg" alt="Tarjeta Amarilla" class="event-icon-img" width="24" height="24">
+            </div>
+            <div class="d-flex flex-column align-items-center">
+              <span class="fw-bold text-dark fs-5">{{ team.stats?.red_cards || 0 }}</span>
+              <img src="/icons/red_card.svg" alt="Tarjeta Roja" class="event-icon-img" width="24" height="24">
+            </div>
+          </div>
+          <div class="text-muted small mt-1">Tarjetas</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section-title text-center py-3 border-bottom border-top mt-2" style="background-color: var(--bg-gris-claro);">
+    <h2 class="mb-0 fs-5 fw-normal text-muted">Resultados Recientes</h2>
+  </div>
+
+  <div class="container py-4">
+    <div class="row g-3">
+      @for (match of $any(team.recentMatches) | slice:0:3; track $any(match).id) {
+      <div class="col-12 col-md-6 col-lg-4">
+        <app-match-card [match]="$any(match)"></app-match-card>
+      </div>
+      } @empty {
+      <div class="col-12 text-center py-4">
+        <i class="bi bi-calendar-x text-muted fs-2 mb-2 d-block"></i>
+        <p class="text-muted mb-0">Este equipo aún no ha disputado partidos esta temporada.</p>
+      </div>
+      }
+    </div>
+  </div>
+
+  <div class="section-title text-center py-3 border-bottom border-top mt-2" style="background-color: var(--bg-gris-claro);">
+    <h2 class="mb-0 fs-5 fw-normal text-muted">Próximos partidos</h2>
+  </div>
+
+  <div class="container py-4">
+    <div class="row g-3">
+      @for (match of $any(team.upcomingMatches) | slice:0:3; track $any(match).id) {
+      <div class="col-12 col-md-6 col-lg-4">
+        <app-match-card [match]="$any(match)"></app-match-card>
+      </div>
+      } @empty {
+      <div class="col-12 text-center py-4">
+        <i class="bi bi-calendar-event text-muted fs-2 mb-2 d-block"></i>
+        <p class="text-muted mb-0">No hay próximos partidos programados para este equipo.</p>
+      </div>
+      }
+    </div>
+  </div>
+
+  <div class="section-title text-center py-3 border-bottom border-top mt-2" style="background-color: var(--bg-gris-claro);">
+    <h2 class="mb-0 fs-5 fw-normal text-muted">Plantilla</h2>
+  </div>
+
+  <div class="container py-4 mb-5">
+
+    @if (team.topScorers && team.topScorers.length > 0) {
+    <div class="d-flex justify-content-center mb-4">
+      <div class="card shadow-sm border border-light rounded-4 bg-white p-3 text-center"
+        style="max-width: 500px; width: 100%;">
+        <h5 class="mb-3 text-dark fw-bold" style="font-size: 0.95rem;">Máximos Goleadores</h5>
+        <div class="d-flex justify-content-center gap-4">
+          @for (scorer of team.topScorers; track scorer.id) {
+          <div class="d-flex flex-column align-items-center">
+            <img [src]="scorer.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'" [routerLink]="['/players', scorer.id]"
+              class="rounded-circle shadow-sm border mb-2" style="width: 50px; height: 50px; object-fit: cover;"
+              onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'">
+            <span class="text-dark fw-bold" style="font-size: 0.85rem;">{{ scorer.name }}</span>
+            <span class="badge bg-primary rounded-pill mt-1">{{ scorer.goals }} ⚽</span>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+    }
+
+    <h5 class="text-center text-muted mb-3 fw-normal" style="font-size: 0.9rem;">Todos los jugadores</h5>
+    <div class="row g-3 justify-content-center mx-auto" style="max-width: 900px;">
+      @for (player of team.players; track player.id) {
+      <div class="col-4 col-sm-3 col-md-2">
+        <div
+          class="card shadow-sm border border-light rounded-4 text-center py-3 player-card text-decoration-none text-dark bg-white h-100 d-flex flex-column justify-content-center align-items-center"
+          style="cursor: pointer; transition: transform 0.2s;" [routerLink]="['/players', player.id]">
+          <img [src]="player.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'" [alt]="player.name || 'Jugador'"
+            class="rounded-circle shadow-sm mb-2" style="width: 60px; height: 60px; object-fit: cover;"
+            onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'">
+          <h4 class="mb-1 fw-normal text-dark">
+            @if (player.jersey_number || player.number) {
+            {{ player.jersey_number || player.number }}
+            } @else {
+            <span class="text-muted" style="font-size: 0.9rem; font-weight: 300;">S/D</span>
+            }
+          </h4>
+          <span class="text-muted" style="font-size: 0.8rem;">{{ player.name || 'Jugador' }}</span>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+
+  }
+</div>

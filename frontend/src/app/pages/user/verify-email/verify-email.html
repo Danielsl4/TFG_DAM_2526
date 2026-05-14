@@ -1,0 +1,47 @@
+<div class="login-page animate-fade-in bg-light py-5" style="min-height: 100vh;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-5">
+        <div class="section-card bg-white rounded-4 shadow-sm p-4 p-md-5 border border-light text-center">
+          
+          @if (status() === 'loading') {
+            <div class="my-4">
+              <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Cargando...</span>
+              </div>
+            </div>
+            <h4 class="fw-bold mb-3">Verificando</h4>
+            <p class="text-muted">{{ message() }}</p>
+          }
+
+          @if (status() === 'success') {
+            <div class="my-4">
+              <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+            </div>
+            <h4 class="fw-bold mb-3">¡Cuenta verificada!</h4>
+            <p class="text-muted mb-4">{{ message() }}</p>
+            <div class="d-grid">
+              <a routerLink="/" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                Ir al inicio
+              </a>
+            </div>
+          }
+
+          @if (status() === 'error') {
+            <div class="my-4">
+              <i class="bi bi-x-circle-fill text-danger" style="font-size: 4rem;"></i>
+            </div>
+            <h4 class="fw-bold mb-3">Error de verificación</h4>
+            <p class="text-muted mb-4">{{ message() }}</p>
+            <div class="d-grid">
+              <a routerLink="/login" class="btn btn-outline-secondary btn-lg rounded-pill fw-bold shadow-sm">
+                Volver al inicio
+              </a>
+            </div>
+          }
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,92 @@
+<div class="dashboard-grid">
+  <div class="stat-card cyan shadow">
+    <div class="stat-icon"><i class="fas fa-users"></i></div>
+    <div class="stat-info">
+      <h3>Equipos</h3>
+      <p class="stat-value">{{ stats.totalTeams }}</p>
+    </div>
+  </div>
+  <div class="stat-card orange shadow">
+    <div class="stat-icon"><i class="fas fa-user-friends"></i></div>
+    <div class="stat-info">
+      <h3>Jugadores</h3>
+      <p class="stat-value">{{ stats.totalPlayers }}</p>
+    </div>
+  </div>
+  <div class="stat-card dark shadow">
+    <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+    <div class="stat-info">
+      <h3>Partidos Pendientes</h3>
+      <p class="stat-value">{{ stats.pendingMatches }}</p>
+    </div>
+  </div>
+  <div class="stat-card purple shadow">
+    <div class="stat-icon"><i class="fas fa-user-shield"></i></div>
+    <div class="stat-info">
+      <h3>Usuarios</h3>
+      <p class="stat-value">{{ stats.totalUsers || 0 }}</p>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-main-grid">
+  <!-- Actividad Reciente -->
+  <div class="activity-section shadow">
+    <div class="section-header d-flex flex-column flex-xl-row justify-content-between align-items-center gap-3">
+      <div class="d-flex align-items-center gap-2 text-center text-xl-start">
+        <h2 class="mb-0">Actividad Reciente de Auditoría</h2>
+        <i class="fas fa-history"></i>
+      </div>
+      <div class="d-flex flex-wrap justify-content-center justify-content-xl-end gap-2 w-100">
+        <button class="btn btn-info btn-sm rounded-pill px-3 shadow-sm text-white flex-grow-1 flex-md-grow-0" (click)="downloadStandingsDossier()" [disabled]="isGeneratingStandingsPdf()">
+          @if (isGeneratingStandingsPdf()) {
+            <span class="spinner-border spinner-border-sm me-1"></span> Generando...
+          } @else {
+            <i class="bi bi-list-ol me-1"></i> Dossier Clasificación
+          }
+        </button>
+        <button class="btn btn-secondary btn-sm rounded-pill px-3 shadow-sm flex-grow-1 flex-md-grow-0" (click)="downloadTeamsDossier()" [disabled]="isGeneratingTeamsPdf()">
+          @if (isGeneratingTeamsPdf()) {
+            <span class="spinner-border spinner-border-sm me-1"></span> Generando...
+          } @else {
+            <i class="bi bi-shield-shaded me-1"></i> Dossier Equipos
+          }
+        </button>
+        <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm flex-grow-1 flex-md-grow-0" (click)="downloadDossier()" [disabled]="isGeneratingPdf()">
+          @if (isGeneratingPdf()) {
+            <span class="spinner-border spinner-border-sm me-1"></span> Generando...
+          } @else {
+            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Dossier Temporada
+          }
+        </button>
+      </div>
+    </div>
+    <div class="activity-list">
+      @for (log of recentActivity; track $index) {
+      <div class="activity-item">
+        <div class="log-dot"></div>
+        <div class="log-content">
+          <p class="log-text">
+            <strong>{{ log.username }}</strong> {{ formatAction(log.action) }}
+            @if (log.details?.name) {
+            <span class="entity-name">"{{ log.details.name }}"</span>
+            }
+          </p>
+          <span class="log-date">{{ log.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+      }
+      @if (recentActivity.length === 0 && !loading) {
+      <div class="empty-activity">
+        No hay actividad registrada recientemente.
+      </div>
+      }
+      @if (loading) {
+      <div class="loading-activity">
+        Cargando actividad...
+      </div>
+      }
+    </div>
+  </div>
+
+</div>

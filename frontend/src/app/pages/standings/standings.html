@@ -1,0 +1,172 @@
+<div class="standings-page animate-fade-in">
+  <div class="container py-4">
+    <h1 class="text-center mb-4 ls-1">Clasificación</h1>
+    <hr class="header-line mb-4">
+
+    <div class="d-flex justify-content-center gap-2 mb-4 flex-wrap animate-fade-in">
+      @for (phase of phases; track phase.id) {
+      <button class="btn-filter-text" [class.active]="selectedPhase() == phase.id" (click)="setPhase(phase.id)">
+        {{ phase.name }}
+      </button>
+      }
+    </div>
+
+    <hr class="header-line mb-4">
+
+    @if (selectedPhase() === 'fase_de_grupos') {
+      <div class="legend-container mx-auto mb-4" style="max-width: 1100px;">
+        <div
+          class="d-flex flex-wrap gap-md-5 gap-3 justify-content-center p-3 bg-white rounded-3 shadow-sm border border-light animate-fade-in">
+          <div class="d-flex align-items-center gap-2">
+            <span class="legend-dot" style="background-color: #d1e7dd; border: 1px solid #19875440;"></span>
+            <span class="small text-muted fw-bold">Clasificación directa (1º-3º)</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="legend-dot" style="background-color: #fff7ed; border: 1px solid #fdba74;"></span>
+            <span class="small text-muted fw-bold">Mejor 4º (Clasificado)</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="legend-dot" style="background-color: #e0f2fe; border: 1px solid #bae6fd;"></span>
+            <span class="small text-muted fw-bold">4º puesto (No clasificado)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mx-auto mb-4 animate-fade-in" style="max-width: 1100px; animation-delay: 0.1s;">
+        <div class="bg-white rounded-3 shadow-sm border border-light p-3">
+          <div class="d-flex align-items-center gap-2 mb-2 text-primary fw-bold" style="font-size: 0.8rem;">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>REGLAMENTO DE DESEMPATE</span>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6" style="border-right: 1px solid #eee;">
+              <div class="small fw-bold text-muted mb-1">Empate entre 2 equipos:</div>
+              <p class="small text-muted mb-0" style="font-size: 0.75rem;">
+                1º Enfrentamiento directo, 2º Golaveraje general, 3º Juego limpio <span class="text-primary">(Amarilla: 1pt, Roja: 3pt)</span>, 4º Goles marcados, 5º Goles encajados, 6º Sorteo.
+              </p>
+            </div>
+            <div class="col-md-6">
+              <div class="small fw-bold text-muted mb-1">Empate entre 3 o más equipos:</div>
+              <p class="small text-muted mb-0" style="font-size: 0.75rem;">
+                1º Puntos liguilla particular, 2º Juego limpio <span class="text-primary">(Amarilla: 1pt, Roja: 3pt)</span>, 3º Diferencia de goles particular, 4º Goles a favor particular, 5º Sorteo.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (isLoading()) {
+    <div class="mx-auto animate-fade-in" style="max-width: 1100px;">
+      @for (group of [1, 2]; track $index) {
+      <div class="group-card mb-4">
+        <div class="skeleton-box mb-3" style="width: 120px; height: 1.5rem;"></div>
+        <div class="table-responsive border rounded-3 overflow-hidden">
+          <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+            <thead class="bg-light">
+              <tr>
+                <th class="text-center" style="width: 45px; background: #f8f9fa;"><div class="skeleton-box mx-auto" style="width: 15px; height: 0.8rem;"></div></th>
+                <th style="min-width: 180px; background: #f8f9fa;"><div class="skeleton-box" style="width: 80px; height: 0.8rem;"></div></th>
+                @for (h of [1,2,3,4,5,6,7,8,9]; track $index) {
+                  <th class="text-center" style="width: 45px; background: #f8f9fa;"><div class="skeleton-box mx-auto" style="width: 20px; height: 0.8rem;"></div></th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of [1,2,3,4,5,6]; track $index) {
+              <tr>
+                <td class="text-center"><div class="skeleton-box mx-auto" style="width: 15px; height: 0.8rem;"></div></td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="skeleton-box skeleton-circle" style="width: 24px; height: 24px;"></div>
+                    <div class="skeleton-box" style="width: 120px; height: 0.8rem;"></div>
+                  </div>
+                </td>
+                @for (cell of [1,2,3,4,5,6,7,8,9]; track $index) {
+                  <td class="text-center"><div class="skeleton-box mx-auto" style="width: 20px; height: 0.8rem;"></div></td>
+                }
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      }
+    </div>
+    } @else if (error()) {
+    <div class="text-center py-5">
+      <div class="alert alert-danger d-inline-block px-5 rounded-pill">
+        {{ error() }}
+      </div>
+    </div>
+    } @else if (selectedPhase() === 'fase_de_grupos') {
+      <div class="mx-auto" style="max-width: 1100px;">
+        @for (group of standings() | keyvalue; track group.key) {
+        <div class="group-card mb-4 animate-fade-in" [style.animation-delay]="($index * 0.1) + 's'">
+          <div class="group-title">Grupo {{ group.key }}</div>
+
+          <app-standings-table 
+            [data]="$any(group.value)" 
+            [bestFourthId]="bestFourthId()">
+          </app-standings-table>
+        </div>
+        }
+      </div>
+
+      @if (bestFourthsRanking().length > 0) {
+      <div class="mx-auto mt-5" style="max-width: 1100px;">
+        <div class="group-card mb-4 animate-fade-in" style="border-left: 4px solid #ea580c; background-color: #fffaf5;">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-star-fill text-warning fs-4"></i>
+            <h2 class="group-title mb-0">Comparativa Mejores 4º</h2>
+          </div>
+
+          <div class="alert alert-info py-2 px-3 border-0 rounded-3 d-flex align-items-center gap-2 mb-4"
+            style="background-color: #f0f7ff; color: #0369a1; font-size: 0.85rem;">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>Para grupos de 7 equipos, se descuenta el resultado contra el último clasificado para igualar el número
+              de partidos.</span>
+          </div>
+
+          <app-standings-table 
+            [data]="bestFourthsRanking()" 
+            [showGroupColumn]="true"
+            [isAdjusted]="true">
+          </app-standings-table>
+
+        </div>
+      </div>
+      }
+      <div class="mx-auto mt-4 mb-5 animate-fade-in" style="max-width: 1100px; animation-delay: 0.2s;">
+        <div class="bg-light rounded-3 p-3 border border-light-subtle">
+          <div class="d-flex flex-wrap gap-x-4 gap-y-2 justify-content-center text-muted" style="font-size: 0.75rem;">
+            <div class="d-flex gap-1"><b>PJ:</b> <span>Partidos Jugados</span> &nbsp;</div>
+            <div class="d-flex gap-1"><b>V:</b> <span>Victorias</span> &nbsp;</div>
+            <div class="d-flex gap-1"><b>E:</b> <span>Empates</span> &nbsp;</div>
+            <div class="d-flex gap-1"><b>D:</b> <span>Derrotas</span> &nbsp;</div>
+            <div class="d-flex gap-1"><b>GF:</b> <span>Goles Favor</span> &nbsp;</div>
+            <div class="d-flex gap-1"><b>GC:</b> <span>Goles Contra</span> &nbsp;</div>
+            <div class="d-flex gap-1"><b>FP:</b> <span>Fair Play</span> &nbsp;</div>
+            <div class="d-flex gap-1"><b>DG:</b> <span>Dif. Goles</span> &nbsp;</div>
+            <div class="d-flex gap-1"><b>Pts:</b> <span>Puntos</span></div>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="mx-auto" style="max-width: 1100px;">
+        <div class="row g-4">
+          @for (match of filteredMatches(); track match.id) {
+          <div class="col-12 col-md-6 col-lg-4 animate-fade-in" [style.animation-delay]="($index * 0.05) + 's'">
+            <app-match-card [match]="match"></app-match-card>
+          </div>
+          } @empty {
+          <div class="col-12 text-center py-5 bg-white rounded-4 shadow-sm border border-light">
+            <i class="bi bi-calendar-x fs-1 text-muted mb-3 d-block"></i>
+            <p class="text-muted fs-5 mb-0">No hay partidos programados para esta fase.</p>
+          </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>
