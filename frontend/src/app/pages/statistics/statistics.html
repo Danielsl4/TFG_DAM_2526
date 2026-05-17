@@ -106,7 +106,7 @@
             <div class="ranking-item clickable-item" [routerLink]="['/teams', team.id]">
               <div class="d-flex align-items-center gap-2">
                 <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" width="32" height="32"
-                  style="object-fit: contain;" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                  style="object-fit: contain;" onerror="this.src='/images/default-player.webp'">
                 <span class="team-name text-truncate" style="max-width: 150px;">{{ team.name }}</span>
               </div>
               <span class="ranking-value">{{ team.won }}</span>
@@ -128,7 +128,7 @@
             <div class="ranking-item clickable-item" [routerLink]="['/teams', team.id]">
               <div class="d-flex align-items-center gap-2">
                 <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" width="32" height="32"
-                  style="object-fit: contain;" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                  style="object-fit: contain;" onerror="this.src='/images/default-player.webp'">
                 <span class="team-name text-truncate" style="max-width: 150px;">{{ team.name }}</span>
               </div>
               <span class="ranking-value">{{ team.lost }}</span>
@@ -150,7 +150,7 @@
             <div class="ranking-item clickable-item" [routerLink]="['/teams', team.id]">
               <div class="d-flex align-items-center gap-2">
                 <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" width="32" height="32"
-                  style="object-fit: contain;" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                  style="object-fit: contain;" onerror="this.src='/images/default-player.webp'">
                 <span class="team-name text-truncate" style="max-width: 150px;">{{ team.name }}</span>
               </div>
               <span class="ranking-value">{{ team.drawn }}</span>
@@ -173,7 +173,7 @@
             <div class="ranking-item clickable-item" [routerLink]="['/teams', team.id]">
               <div class="d-flex align-items-center gap-2">
                 <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" width="32" height="32"
-                  style="object-fit: contain;" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                  style="object-fit: contain;" onerror="this.src='/images/default-player.webp'">
                 <span class="team-name text-truncate" style="max-width: 150px;">{{ team.name }}</span>
               </div>
               <span class="ranking-value">{{ team.goals_for }}</span>
@@ -195,7 +195,7 @@
             <div class="ranking-item clickable-item" [routerLink]="['/teams', team.id]">
               <div class="d-flex align-items-center gap-2">
                 <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" width="32" height="32"
-                  style="object-fit: contain;" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                  style="object-fit: contain;" onerror="this.src='/images/default-player.webp'">
                 <span class="team-name text-truncate" style="max-width: 150px;">{{ team.name }}</span>
               </div>
               <span class="ranking-value">{{ team.goals_against }}</span>
@@ -225,7 +225,7 @@
               <div class="d-flex align-items-center gap-2">
                 <img [src]="player.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'" width="32" height="32"
                   class="rounded-circle" style="object-fit: cover;"
-                  onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'">
+                  onerror="this.src='/images/default-player.webp'">
                 <div class="d-flex flex-column">
                   <span class="player-name fw-bold" style="font-size: 0.85rem;">{{ player.name }}</span>
                   <span class="text-muted" style="font-size: 0.7rem;">{{ player.team_name }}</span>
@@ -251,7 +251,7 @@
               <div class="d-flex align-items-center gap-2">
                 <img [src]="player.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'" width="32" height="32"
                   class="rounded-circle" style="object-fit: cover;"
-                  onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'">
+                  onerror="this.src='/images/default-player.webp'">
                 <div class="d-flex flex-column">
                   <span class="player-name fw-bold" style="font-size: 0.85rem;">{{ player.name }}</span>
                   <span class="text-muted" style="font-size: 0.7rem;">{{ player.team_name }}</span>
@@ -277,7 +277,7 @@
               <div class="d-flex align-items-center gap-2">
                 <img [src]="player.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'" width="32" height="32"
                   class="rounded-circle" style="object-fit: cover;"
-                  onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'">
+                  onerror="this.src='/images/default-player.webp'">
                 <div class="d-flex flex-column">
                   <span class="player-name fw-bold" style="font-size: 0.85rem;">{{ player.name }}</span>
                   <span class="text-muted" style="font-size: 0.7rem;">{{ player.team_name }}</span>
@@ -322,7 +322,7 @@
                                [class.bg-bronze]="i === 2" [class.text-white]="i === 2"
                                [class.bg-light]="i > 2" [class.text-muted]="i > 2"
                                style="width: 32px; height: 32px; font-size: 0.9rem;">
-                            {{ i + 1 }}
+                            {{ rank.displayRank }}
                           </div>
                           <div class="d-flex align-items-center gap-2">
                             <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"

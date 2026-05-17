@@ -16,6 +16,7 @@
         <tr>
           <th>Usuario</th>
           <th>Email</th>
+          <th>Estado</th>
           <th>Rol</th>
           <th>Acciones</th>
         </tr>
@@ -30,12 +31,29 @@
           </td>
           <td>{{ user.email }}</td>
           <td>
+            @if (user.is_verified) {
+              <span class="badge bg-success rounded-pill px-2 py-1" style="font-size: 0.75rem;"><i class="fas fa-check-circle me-1"></i> Verificado</span>
+            } @else {
+              <span class="badge bg-warning text-dark rounded-pill px-2 py-1" style="font-size: 0.75rem;"><i class="fas fa-exclamation-triangle me-1"></i> Pendiente</span>
+            }
+          </td>
+          <td>
             <span class="role-badge" [ngClass]="user.role">
               {{ user.role === 'admin' ? 'Administrador' : (user.role === 'referee' ? 'Árbitro' : 'Usuario') }}
             </span>
           </td>
           <td class="actions-cell">
             <div class="actions-wrapper">
+              @if (!user.is_verified) {
+                <button class="btn-icon verify" (click)="verifyUser(user)" title="Verificar Manualmente" style="color: #2ec4b6;">
+                  <i class="fas fa-user-check"></i>
+                </button>
+                @if (user.verification_token) {
+                  <button class="btn-icon copy" (click)="copyVerificationLink(user)" title="Copiar Enlace de Verificación" style="color: #00AEEF;">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                }
+              }
               <button class="btn-icon edit" (click)="editUser(user)" title="Editar Usuario">
                 <i class="fas fa-edit"></i>
               </button>

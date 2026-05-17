@@ -37,7 +37,7 @@ router.post("/", verifyToken, verifyAdmin, async (req, res) => {
     const result = await db.query(query, [name, season_id]);
     const newGroup = result.rows[0];
 
-    await logAction(req.authData.id, 'Creación de grupo', 'group', newGroup.id, { name: newGroup.name, season_id });
+    await logAction(req.authData.id, 'Creación de grupo', 'group', newGroup.id, { name: newGroup.name }, season_id);
     res.status(201).json(newGroup);
   } catch (err) {
     console.error(err);
@@ -56,7 +56,7 @@ router.put("/:id", verifyToken, verifyAdmin, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ message: "Grupo no encontrado" });
 
     const updatedGroup = result.rows[0];
-    await logAction(req.authData.id, 'Actualización de grupo', 'group', id, { name: updatedGroup.name, season_id });
+    await logAction(req.authData.id, 'Actualización de grupo', 'group', id, { name: updatedGroup.name }, season_id);
     res.json(updatedGroup);
   } catch (err) {
     console.error(err);
@@ -68,12 +68,12 @@ router.put("/:id", verifyToken, verifyAdmin, async (req, res) => {
 router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
   const { id } = req.params;
   try {
-    const groupRes = await db.query("SELECT name FROM groups WHERE id = $1", [id]);
+    const groupRes = await db.query("SELECT name, season_id FROM groups WHERE id = $1", [id]);
     if (groupRes.rows.length === 0) return res.status(404).json({ message: "Grupo no encontrado" });
-    const groupName = groupRes.rows[0].name;
+    const { name: groupName, season_id: sId } = groupRes.rows[0];
 
     await db.query("DELETE FROM groups WHERE id = $1", [id]);
-    await logAction(req.authData.id, 'Eliminación de grupo', 'group', id, { name: groupName });
+    await logAction(req.authData.id, 'Eliminación de grupo', 'group', id, { name: groupName }, sId);
     res.json({ message: "Grupo eliminado correctamente" });
   } catch (err) {
     console.error(err);
@@ -121,7 +121,7 @@ router.post("/:id/teams", verifyToken, verifyAdmin, async (req, res) => {
     `;
     const result = await db.query(query, [team_id, groupId, season_id]);
     
-    await logAction(req.authData.id, 'Asignación de equipo a grupo', 'group', groupId, { team_id, season_id });
+    await logAction(req.authData.id, 'Asignación de equipo a grupo', 'group', groupId, { team_id }, season_id);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(err);
@@ -139,7 +139,7 @@ router.delete("/:id/teams/:teamId", verifyToken, verifyAdmin, async (req, res) =
   try {
     await db.query("DELETE FROM team_stats WHERE team_id = $1 AND group_id = $2 AND season_id = $3", [teamId, groupId, season_id]);
     
-    await logAction(req.authData.id, 'Eliminación de equipo de grupo', 'group', groupId, { team_id: teamId, season_id });
+    await logAction(req.authData.id, 'Eliminación de equipo de grupo', 'group', groupId, { team_id: teamId }, season_id);
     res.json({ message: "Equipo eliminado del grupo" });
   } catch (err) {
     console.error(err);

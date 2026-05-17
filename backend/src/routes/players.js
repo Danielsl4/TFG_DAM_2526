@@ -53,33 +53,56 @@ router.get("/", verifyToken, verifyAdmin, async (req, res) => {
       let countQuery;
       let values = [];
       let searchPattern = `%${search}%`;
-
       if (season_id) {
-        countQuery = `
-          SELECT COUNT(DISTINCT p.id)
-          FROM players p
-          JOIN team_players tp ON p.id = tp.player_id
-          WHERE tp.season_id = $1 AND unaccent(p.name) ILIKE unaccent($2) AND p.is_active = true
-        `;
-        query = `
-          SELECT p.*, t.name as team_name, tp.jersey_number, tp.team_id
-          FROM players p
-          JOIN team_players tp ON p.id = tp.player_id
-          LEFT JOIN teams t ON tp.team_id = t.id
-          WHERE tp.season_id = $1 AND unaccent(p.name) ILIKE unaccent($2) AND p.is_active = true
-          ORDER BY LOWER(p.name) ASC
-          LIMIT $3 OFFSET $4
-        `;
-        values = [season_id, searchPattern];
+        // Solo jugadores inscritos en esta temporada
+        const countRes = await db.query(
+          `SELECT COUNT(*) FROM team_players tp 
+           JOIN players p ON tp.player_id = p.id 
+           WHERE tp.season_id = $1 AND unaccent(p.name) ILIKE unaccent($2) AND p.is_active = true`,
+          [season_id, searchPattern]
+        );
+        const totalPlayers = parseInt(countRes.rows[0].count);
+
+        const result = await db.query(
+          `SELECT p.*, t.name as team_name, tp.jersey_number, tp.team_id
+           FROM players p
+           JOIN team_players tp ON p.id = tp.player_id
+           LEFT JOIN teams t ON tp.team_id = t.id
+           WHERE tp.season_id = $1 AND unaccent(p.name) ILIKE unaccent($2) AND p.is_active = true
+           ORDER BY LOWER(p.name) ASC
+           LIMIT $3 OFFSET $4`,
+          [season_id, searchPattern, limit, offset]
+        );
+
+        return res.json({
+          players: result.rows,
+          pagination: {
+            total: totalPlayers,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            totalPages: Math.ceil(totalPlayers / limit),
+          },
+        });
       } else {
         // Búsqueda global, opcionalmente excluyendo una temporada
+        let totalPlayers;
+        let players;
+        
         let excludeClause = "";
+        const queryValues = [searchPattern];
+        
         if (exclude_season_id) {
-          excludeClause = `AND NOT EXISTS (SELECT 1 FROM team_players tp2 WHERE tp2.player_id = p.id AND tp2.season_id = $${search ? 2 : 1})`;
+          excludeClause = `AND NOT EXISTS (SELECT 1 FROM team_players tp2 WHERE tp2.player_id = p.id AND tp2.season_id = $2)`;
+          queryValues.push(exclude_season_id);
         }
 
-        countQuery = `SELECT COUNT(*) FROM players p WHERE unaccent(name) ILIKE unaccent($1) AND is_active = true ${excludeClause}`;
-        query = `
+        const countRes = await db.query(
+          `SELECT COUNT(*) FROM players p WHERE unaccent(name) ILIKE unaccent($1) AND is_active = true ${excludeClause}`,
+          queryValues
+        );
+        totalPlayers = parseInt(countRes.rows[0].count);
+
+        const mainQuery = `
           SELECT p.*,
             (SELECT t.name 
              FROM team_players tp 
@@ -90,30 +113,23 @@ router.get("/", verifyToken, verifyAdmin, async (req, res) => {
           FROM players p
           WHERE unaccent(p.name) ILIKE unaccent($1) AND p.is_active = true ${excludeClause}
           ORDER BY LOWER(p.name) ASC
-          LIMIT $${exclude_season_id ? (search ? 3 : 2) : 2} OFFSET $${exclude_season_id ? (search ? 4 : 3) : 3}
+          LIMIT $${queryValues.length + 1} OFFSET $${queryValues.length + 2}
         `;
         
-        values = [searchPattern];
-        if (exclude_season_id) values.push(exclude_season_id);
+        const result = await db.query(mainQuery, [...queryValues, limit, offset]);
+        players = result.rows;
+
+        return res.json({
+          players,
+          pagination: {
+            total: totalPlayers,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            totalPages: Math.ceil(totalPlayers / limit),
+          },
+        });
       }
-
-    const totalRes = await db.query(countQuery, values);
-    const totalPlayers = parseInt(totalRes.rows[0].count);
-
-    // Añadimos limit y offset a los valores de la query principal
-    const finalValues = [...values, limit, offset];
-    const result = await db.query(query, finalValues);
-
-    res.json({
-      players: result.rows,
-      pagination: {
-        total: totalPlayers,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(totalPlayers / limit),
-      },
-    });
-  } catch (err) {
+    } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error al obtener la lista de jugadores" });
   }
@@ -139,7 +155,12 @@ router.post("/", verifyToken, verifyAdmin, async (req, res) => {
       );
     }
 
-    await logAction(req.authData.id, 'Creación de jugador', 'player', newPlayer.id, { name: newPlayer.name, season_id, team_id });
+    let actionName = 'Creación de jugador';
+    if (season_id) {
+      actionName = team_id ? 'Inscripción de jugador en equipo' : 'Inscripción de jugador en temporada';
+    }
+
+    await logAction(req.authData.id, actionName, 'player', newPlayer.id, { name: newPlayer.name, season_id, team_id }, season_id);
 
     res.status(201).json({ message: "Jugador creado correctamente", player: newPlayer });
   } catch (err) {
@@ -233,13 +254,19 @@ router.post("/:id/register", verifyToken, verifyAdmin, async (req, res) => {
       season_id,
       jersey_number || null,
     ]);
+    
+    // Obtener el nombre del jugador para el log
+    const pRes = await db.query("SELECT name FROM players WHERE id = $1", [playerId]);
+    const playerName = pRes.rows[0]?.name || `ID ${playerId}`;
 
+    const actionName = team_id ? "Inscripción de jugador en equipo" : "Inscripción de jugador en temporada";
     await logAction(
       req.authData.id,
-      "Inscripción de jugador en equipo",
+      actionName,
       "player",
       playerId,
-      { team_id, season_id, jersey_number },
+      { name: playerName, team_id, season_id, jersey_number },
+      season_id
     );
 
     res.json({ message: "Jugador inscrito o traspasado correctamente" });
@@ -261,14 +288,20 @@ router.delete("/:id/unregister", verifyToken, verifyAdmin, async (req, res) => {
   try {
     await db.query(
       "DELETE FROM team_players WHERE player_id = $1 AND team_id = $2 AND season_id = $3",
-      [playerId, team_id, season_id],
+      [playerId, team_id, season_id]
     );
+
+    // Auditoría
+    const pInfo = await db.query("SELECT name FROM players WHERE id = $1", [playerId]);
+    const pName = pInfo.rows[0]?.name || `ID ${playerId}`;
+
     await logAction(
       req.authData.id,
       "Baja de jugador de equipo",
       "player",
       playerId,
-      { team_id, season_id },
+      { name: pName, team_id, season_id },
+      season_id
     );
 
     res.json({ message: "Jugador dado de baja del equipo correctamente" });
@@ -295,13 +328,13 @@ router.delete(
       // 1. Eliminar de team_players (todas sus inscripciones en esa temporada)
       await db.query(
         "DELETE FROM team_players WHERE player_id = $1 AND season_id = $2",
-        [playerId, seasonId],
+        [parseInt(playerId), parseInt(seasonId)],
       );
 
       // 2. Eliminar estadísticas de esa temporada
       await db.query(
         "DELETE FROM player_stats WHERE player_id = $1 AND season_id = $2",
-        [playerId, seasonId],
+        [parseInt(playerId), parseInt(seasonId)],
       );
 
       await logAction(
@@ -310,6 +343,7 @@ router.delete(
         "player",
         playerId,
         { name: playerName, season_id: seasonId },
+        seasonId
       );
 
       res.json({ message: "Jugador eliminado de la temporada correctamente" });
@@ -343,7 +377,18 @@ router.post("/:id/register", verifyToken, verifyAdmin, async (req, res) => {
     );
 
     // Auditoría
-    await logAction(req.authData.id, 'Inscripción de jugador existente', 'player', id, { team_id, season_id, jersey_number });
+    const playerInfo = await db.query("SELECT name FROM players WHERE id = $1", [id]);
+    const playerName = playerInfo.rows[0]?.name || `ID ${id}`;
+    const actionName = team_id ? 'Inscripción de jugador en equipo' : 'Inscripción de jugador en temporada';
+
+    await logAction(
+      req.authData.id, 
+      actionName, 
+      'player', 
+      id, 
+      { name: playerName, team_id, season_id, jersey_number },
+      season_id
+    );
 
     res.status(201).json({ message: "Jugador inscrito correctamente" });
   } catch (err) {
@@ -368,6 +413,25 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error al eliminar el jugador" });
+  }
+});
+
+// Obtener jugadores huérfanos (Sin ninguna asociación a equipos o estadísticas)
+router.get("/admin/orphans", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const query = `
+      SELECT p.* 
+      FROM players p
+      WHERE NOT EXISTS (SELECT 1 FROM team_players tp WHERE tp.player_id = p.id)
+        AND NOT EXISTS (SELECT 1 FROM player_stats ps WHERE ps.player_id = p.id)
+        AND NOT EXISTS (SELECT 1 FROM match_events me WHERE me.player_id = p.id)
+      ORDER BY p.name ASC
+    `;
+    const result = await db.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error al obtener jugadores huérfanos" });
   }
 });
 
@@ -397,6 +461,44 @@ router.post("/:id/restore", verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
-// El borrado permanente ha sido deshabilitado para preservar el historial y las imágenes de Cloudinary.
+// Eliminar un jugador definitivamente (Solo Admin)
+router.delete("/:id/permanent", verifyToken, verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    // 1. Verificar si tiene asociaciones críticas
+    const eventsCheck = await db.query("SELECT id FROM match_events WHERE player_id = $1 LIMIT 1", [id]);
+    if (eventsCheck.rows.length > 0) {
+      return res.status(400).json({ message: "No se puede eliminar permanentemente: el jugador tiene historial de eventos en partidos (goles/tarjetas)." });
+    }
+
+    const teamPlayersCheck = await db.query("SELECT 1 FROM team_players WHERE player_id = $1 LIMIT 1", [id]);
+    if (teamPlayersCheck.rows.length > 0) {
+      return res.status(400).json({ message: "No se puede eliminar permanentemente: el jugador está inscrito en algún equipo o temporada." });
+    }
+
+    // 2. Obtener photo_url para borrarla de Cloudinary
+    const playerRes = await db.query("SELECT name, photo_url FROM players WHERE id = $1", [id]);
+    if (playerRes.rows.length === 0) return res.status(404).json({ message: "Jugador no encontrado" });
+    const player = playerRes.rows[0];
+
+    // 3. Borrar imagen de Cloudinary
+    if (player.photo_url) {
+      try {
+        await deleteImage(player.photo_url);
+      } catch (imgErr) {
+        console.error("Error al borrar foto de Cloudinary:", imgErr);
+      }
+    }
+
+    // 4. Borrado físico de la BD
+    await db.query("DELETE FROM players WHERE id = $1", [id]);
+    
+    await logAction(req.authData.id, 'Eliminación permanente de jugador', 'player', id, { name: player.name });
+    res.json({ message: "Jugador eliminado definitivamente de la base de datos" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error al eliminar definitivamente" });
+  }
+});
 
 module.exports = router;

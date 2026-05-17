@@ -55,7 +55,7 @@
                          [routerLink]="['/teams', team.id]" style="cursor: pointer;">
                       <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" 
                            class="img-fluid mb-2 mx-auto" style="height: 60px; object-fit: contain;"
-                           onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                           onerror="this.src='/images/default-team.webp'">
                       <div class="small fw-bold text-dark text-truncate">{{ team.name }}</div>
                       <div class="text-xxs text-muted text-uppercase mt-1" style="font-size: 0.65rem;">Ver perfil</div>
                     </div>
@@ -93,6 +93,32 @@
                 <p class="text-muted mb-0">No hay próximos partidos programados<br>para los equipos que sigues.</p>
               </div>
             }
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-8 mt-3">
+          <div class="section-card bg-white rounded-4 shadow-sm p-4 border border-light">
+            <div class="d-flex align-items-center gap-2 mb-3 px-1">
+              <i class="bi bi-shield-lock-fill text-primary fs-4"></i>
+              <h4 class="fw-bold mb-0">Seguridad de la cuenta</h4>
+            </div>
+            <p class="text-muted small mb-3">
+              Tu clave de recuperación de emergencia te permite restablecer tu contraseña de forma autónoma si falla el servidor de correos. Por seguridad, la clave está encriptada y no es visible.
+            </p>
+            <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded-3 border">
+              <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-shield-fill-check text-success fs-4"></i>
+                <div>
+                  <div class="text-xxs text-muted text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">Clave de Emergencia</div>
+                  <div class="fw-bold text-success" style="font-size: 0.9rem; letter-spacing: 0.5px;">
+                    <i class="bi bi-lock-fill me-1"></i> Encriptada y Protegida
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline-primary rounded-pill px-3" (click)="generateNewRecoveryKey()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Generar Nueva
+              </button>
+            </div>
           </div>
         </div>
 

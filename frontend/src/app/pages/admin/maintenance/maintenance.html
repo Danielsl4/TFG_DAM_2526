@@ -1,0 +1,113 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+      <div class="header-icon-box">
+        <i class="fas fa-broom"></i>
+      </div>
+      <div>
+        <h2 class="mb-0">Mantenimiento y Limpieza</h2>
+        <p class="text-muted mb-0">Gestiona elementos huérfanos que no tienen ninguna asociación con temporadas o partidos.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="maintenance-tabs shadow-sm">
+    <button [class.active]="activeTab === 'teams'" (click)="switchTab('teams')">
+      <i class="fas fa-shield-alt me-2"></i> Equipos Huérfanos
+      <span class="badge" *ngIf="orphanTeams.length > 0">{{ orphanTeams.length }}</span>
+    </button>
+    <button [class.active]="activeTab === 'players'" (click)="switchTab('players')">
+      <i class="fas fa-user-friends me-2"></i> Jugadores Huérfanos
+      <span class="badge" *ngIf="orphanPlayers.length > 0">{{ orphanPlayers.length }}</span>
+    </button>
+  </div>
+
+  <div class="table-container shadow mt-4">
+    <div class="p-4 text-center" *ngIf="loading">
+      <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+      <p class="mt-2 text-muted">Buscando elementos huérfanos...</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading">
+      <!-- Tabla de Equipos -->
+      <table class="admin-table" *ngIf="activeTab === 'teams'">
+        <thead>
+          <tr>
+            <th>Logo</th>
+            <th>Nombre del Equipo</th>
+            <th>Info Adicional</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let team of orphanTeams">
+            <td>
+              <img [src]="team.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" class="team-logo-small">
+            </td>
+            <td>
+              <strong class="fs-5">{{ team.name }}</strong>
+            </td>
+            <td>
+              <div class="small text-muted">
+                <div><i class="fas fa-user-tie me-1"></i> {{ team.delegate || 'Sin delegado' }}</div>
+                <div><i class="fas fa-phone me-1"></i> {{ team.phone || 'Sin teléfono' }}</div>
+              </div>
+            </td>
+            <td>
+              <button class="btn-icon delete-permanent" (click)="deleteTeamPermanent(team)" title="BORRAR DEFINITIVAMENTE">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="orphanTeams.length === 0">
+            <td colspan="4" class="empty-state">
+              <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+              <p>No se han encontrado equipos huérfanos. ¡Todo está limpio!</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Tabla de Jugadores -->
+      <table class="admin-table" *ngIf="activeTab === 'players'">
+        <thead>
+          <tr>
+            <th>Foto</th>
+            <th>Nombre del Jugador</th>
+            <th>Fecha Nac.</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let player of orphanPlayers">
+            <td>
+              <img [src]="player.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'" class="player-photo-small">
+            </td>
+            <td>
+              <strong class="fs-5">{{ player.name }}</strong>
+            </td>
+            <td>{{ player.birth_date ? (player.birth_date | date:'dd/MM/yyyy') : '---' }}</td>
+            <td>
+              <button class="btn-icon delete-permanent" (click)="deletePlayerPermanent(player)" title="BORRAR DEFINITIVAMENTE">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="orphanPlayers.length === 0">
+            <td colspan="4" class="empty-state">
+              <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+              <p>No se han encontrado jugadores huérfanos. ¡Todo está limpio!</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="alert alert-info mt-4 d-flex align-items-center gap-3">
+    <i class="fas fa-info-circle fa-2x"></i>
+    <div>
+      <strong>Nota sobre el borrado:</strong> Solo aparecen aquí los elementos que no tienen ningún registro histórico (partidos, plantillas de cualquier temporada o estadísticas). El borrado permanente eliminará el registro de la base de datos y la imagen asociada en la nube de forma irreversible.
+    </div>
+  </div>
+</div>

@@ -185,6 +185,7 @@ export class Competitions implements OnInit {
     });
 
     if (formValues) {
+      Swal.showLoading();
       if (season) {
         this.apiService.updateSeason(season.id, formValues).subscribe(() => {
           this.loadSeasons();
@@ -312,6 +313,7 @@ export class Competitions implements OnInit {
     });
 
     if (formValues) {
+      Swal.showLoading();
       if (group) {
         this.apiService.updateGroup(group.id, formValues).subscribe(() => {
           this.loadGroups();
@@ -470,6 +472,7 @@ export class Competitions implements OnInit {
     });
 
     if (formValues) {
+      Swal.showLoading();
       if (field) {
         this.apiService.updateField(field.id, formValues).subscribe(() => {
           this.loadFields();
@@ -806,6 +809,7 @@ export class Competitions implements OnInit {
     });
 
     if (formValues) {
+      Swal.showLoading();
       this.apiService.createMatch(formValues).subscribe({
         next: () => {
           Swal.fire('¡Creado!', 'El partido se ha guardado correctamente.', 'success');

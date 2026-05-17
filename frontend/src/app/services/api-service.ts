@@ -41,6 +41,16 @@ export class ApiService {
     return this.http.post(`${this.urlApi}/reset-password`, { token, newPassword });
   }
 
+  /** Restablece la contraseña usando la clave de recuperación de emergencia */
+  resetPasswordWithRecoveryKey(data: any): Observable<any> {
+    return this.http.post(`${this.urlApi}/reset-password-recovery`, data);
+  }
+
+  /** Regenera la clave de recuperación de emergencia del usuario autenticado */
+  regenerateRecoveryKey(): Observable<any> {
+    return this.http.post(`${this.urlApi}/user/regenerate-recovery-key`, {});
+  }
+
   /** Verifica el correo electrónico del usuario */
   verifyEmail(token: string): Observable<any> {
     return this.http.get(`${this.urlApi}/verify-email/${token}`);
@@ -119,6 +129,14 @@ export class ApiService {
     return this.http.put(`${this.urlApi}/teams/${id}`, data);
   }
 
+  deleteTeamPermanent(id: number): Observable<any> {
+    return this.http.delete(`${this.urlApi}/teams/${id}/permanent`);
+  }
+
+  getOrphanTeams(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.urlApi}/teams/admin/orphans`);
+  }
+
   /** Elimina un equipo del sistema (Borrado lógico) */
   deleteTeam(id: number): Observable<any> {
     return this.http.delete(`${this.urlApi}/teams/${id}`);
@@ -191,6 +209,14 @@ export class ApiService {
   /** Actualiza la información personal de un jugador */
   updatePlayer(id: number, data: any): Observable<any> {
     return this.http.put(`${this.urlApi}/players/${id}`, data);
+  }
+
+  deletePlayerPermanent(id: number): Observable<any> {
+    return this.http.delete(`${this.urlApi}/players/${id}/permanent`);
+  }
+
+  getOrphanPlayers(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.urlApi}/players/admin/orphans`);
   }
 
   /** Obtiene los jugadores inscritos en un equipo para una temporada concreta */
@@ -424,6 +450,11 @@ export class ApiService {
   /** Elimina un usuario del sistema (Admin) */
   deleteAdminUser(id: number): Observable<any> {
     return this.http.delete(`${this.urlApi}/admin/users/${id}`);
+  }
+
+  /** Verifica manualmente a un usuario (Admin) */
+  verifyAdminUser(id: number): Observable<any> {
+    return this.http.post(`${this.urlApi}/admin/users/${id}/verify`, {});
   }
 
   /** Obtiene el listado de campos o sedes de juego */

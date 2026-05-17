@@ -19,7 +19,7 @@
   <div class="teams-display d-flex align-items-center justify-content-between mb-4">
     <div class="team-block text-center flex-1">
       <img [src]="match.homeTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" alt="" class="team-img mb-2"
-        onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+        onerror="this.src='/images/default-team.webp'">
       <div class="team-label fw-bold text-truncate px-1" [title]="match.homeTeam?.name || match.homeTeamPlaceholder">
         {{ match.homeTeam?.name || match.homeTeamPlaceholder || 'TBD' }}
       </div>
@@ -31,7 +31,7 @@
 
     <div class="team-block text-center flex-1">
       <img [src]="match.awayTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" alt="" class="team-img mb-2"
-        onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+        onerror="this.src='/images/default-team.webp'">
       <div class="team-label fw-bold text-truncate px-1" [title]="match.awayTeam?.name || match.awayTeamPlaceholder">
         {{ match.awayTeam?.name || match.awayTeamPlaceholder || 'TBD' }}
       </div>

@@ -55,6 +55,7 @@ export class MatchDetail implements OnInit, OnDestroy {
   selectedPlayerId = signal<number | null>(null);
   selectedEventType = signal<string>('gol');
   isSubmittingEvent = signal<boolean>(false);
+  isManagingMatch = signal<boolean>(false);
   matchObservations = signal<string>('');
   allTeams = signal<any[]>([]);
   isPenaltyShootoutMode = signal<boolean>(false);
@@ -119,10 +120,12 @@ export class MatchDetail implements OnInit, OnDestroy {
    */
   onManageMatch() {
     const id = this.matchId();
-    if (!id) return;
+    if (!id || this.isManagingMatch()) return;
 
+    this.isManagingMatch.set(true);
     this.apiService.lockMatch(id).subscribe({
       next: (res) => {
+        this.isManagingMatch.set(false);
         if (res.success) {
           this.isLockedByMe.set(true);
           this.startHeartbeat();
@@ -136,6 +139,7 @@ export class MatchDetail implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
+        this.isManagingMatch.set(false);
         this.handleEditError(err, 'No se puede gestionar el partido en este momento.');
       }
     });
@@ -159,15 +163,18 @@ export class MatchDetail implements OnInit, OnDestroy {
 
   onEditMode(isRealTime: boolean) {
     const id = this.matchId();
-    if (!id || !this.isLockedByMe()) return;
+    if (!id || !this.isLockedByMe() || this.isManagingMatch()) return;
 
     if (isRealTime) {
+      this.isManagingMatch.set(true);
       this.apiService.updateMatchStatus(id, 'en_curso').subscribe({
         next: () => {
+          this.isManagingMatch.set(false);
           this.loadMatchData();
           this.openEventForm();
         },
         error: (err) => {
+          this.isManagingMatch.set(false);
           console.error('Error al iniciar partido:', err);
           this.handleEditError(err, 'No se pudo iniciar el partido en directo.');
         }
@@ -445,15 +452,18 @@ export class MatchDetail implements OnInit, OnDestroy {
     const playerId = this.selectedPenaltyPlayerId();
     const side = this.selectedPenaltyTeamSide();
 
-    if (!id || !playerId || !side) {
+    if (!id || !playerId || !side || this.isSubmittingEvent()) {
       Swal.fire({ icon: 'warning', title: 'Atención', text: 'Selecciona un jugador primero' });
       return;
     }
 
     const type = wasScored ? 'penalti_tanda_marcado' : 'penalti_tanda_fallado';
 
+    this.isSubmittingEvent.set(true);
+
     this.apiService.addMatchEvent(id, type, playerId, side).subscribe({
       next: () => {
+        this.isSubmittingEvent.set(false);
         this.loadMatchData();
         // Resetear selección para el siguiente tiro
         this.selectedPenaltyPlayerId.set(null);
@@ -474,6 +484,7 @@ export class MatchDetail implements OnInit, OnDestroy {
         });
       },
       error: (err) => {
+        this.isSubmittingEvent.set(false);
         Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo registrar el penalti' });
       }
     });
@@ -547,9 +558,13 @@ export class MatchDetail implements OnInit, OnDestroy {
       color: '#EDEDED'
     }).then((result) => {
       if (result.isConfirmed) {
+        Swal.showLoading();
         this.apiService.deleteMatchEvent(matchId, eventId).subscribe({
           next: () => {
-            setTimeout(() => this.loadMatchData(), 500);
+            setTimeout(() => {
+              this.loadMatchData();
+              Swal.close();
+            }, 500);
           },
           error: (err) => {
             Swal.fire({

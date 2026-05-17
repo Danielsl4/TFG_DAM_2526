@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const db = require("../../db");
 const { verifyToken } = require("../middlewares/auth");
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 // Lista de usuarios básicos (requiere login)
 router.get("/users", verifyToken, async (req, res) => {
@@ -20,7 +22,7 @@ router.get("/user/profile", verifyToken, async (req, res) => {
 
   try {
     // 1. Datos básicos del usuario
-    const userRes = await db.query("SELECT id, username, email FROM users WHERE id = $1", [userId]);
+    const userRes = await db.query("SELECT id, username, email, recovery_key FROM users WHERE id = $1", [userId]);
     if (userRes.rows.length === 0) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
@@ -95,6 +97,37 @@ router.get("/user/profile", verifyToken, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error al obtener el perfil" });
+  }
+});
+
+// Regenerar clave de recuperación (requiere login)
+router.post("/user/regenerate-recovery-key", verifyToken, async (req, res) => {
+  const userId = req.authData.id;
+
+  try {
+    // Generar nueva clave de recuperación
+    const newRecoveryKeyPlain = 'REC-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    const newRecoveryKeyHash = await bcrypt.hash(newRecoveryKeyPlain, 10);
+
+    // Guardar en base de datos
+    await db.query(
+      "UPDATE users SET recovery_key = $1 WHERE id = $2",
+      [newRecoveryKeyHash, userId]
+    );
+
+    // Registrar acción en auditoría
+    await db.query(
+      "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details) VALUES ($1, $2, $3, $4, $5)",
+      [userId, "Regeneración de clave de recuperación de emergencia", "user", userId, {}]
+    );
+
+    res.json({
+      message: "Nueva clave de recuperación de emergencia generada con éxito.",
+      recoveryKey: newRecoveryKeyPlain
+    });
+  } catch (err) {
+    console.error("Error al regenerar clave de recuperación:", err);
+    res.status(500).json({ message: "Error al regenerar la clave de recuperación." });
   }
 });
 

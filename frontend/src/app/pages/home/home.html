@@ -36,9 +36,9 @@
                 <div class="live-card-body d-flex align-items-center justify-content-between gap-2 my-2">
                   <div class="team-unit">
                     <img
-                      [src]="match.homeTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'"
+                      [src]="match.homeTeam?.logoUrl || '/images/default-team.webp'"
                       class="team-logo-hero" alt=""
-                      onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                      onerror="this.src='/images/default-player.webp'">
                     <div class="team-name">{{ match.homeTeam?.name }}</div>
                   </div>
                   <div class="score-unit">
@@ -47,9 +47,9 @@
                   </div>
                   <div class="team-unit">
                     <img
-                      [src]="match.awayTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'"
+                      [src]="match.awayTeam?.logoUrl || '/images/default-team.webp'"
                       class="team-logo-hero" alt=""
-                      onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                      onerror="this.src='/images/default-player.webp'">
                     <div class="team-name">{{ match.awayTeam?.name }}</div>
                   </div>
                 </div>
@@ -63,7 +63,7 @@
           } @else {
           <div class="logo-container">
             <img
-              src="https://res.cloudinary.com/dyxl1d54d/image/upload/v1777509247/tfg_futsal/general/logo_oficial_tfg.webp"
+              src="/images/logo-tfg.webp"
               alt="Logo Torneo" class="hero-logo img-fluid">
           </div>
           }
@@ -139,9 +139,9 @@
                 </div>
                 <div class="overview-item-icon">
                   <img
-                    [src]="team.team_logo || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'"
+                    [src]="team.team_logo || '/images/default-team.webp'"
                     class="team-logo-mini" alt=""
-                    onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                    onerror="this.src='/images/default-player.webp'">
                 </div>
                 <div class="overview-item-content">
                   <div class="fw-bold text-truncate" style="max-width: 150px;">{{team.team_name}}</div>
@@ -177,13 +177,13 @@
               @for (player of topScorers.slice(0, 5); track player.id) {
               <div class="overview-item cursor-pointer" [routerLink]="['/players', player.id]">
                 <div class="overview-item-start">
-                  <div class="rank-pill bg-primary text-white">{{ $index + 1 }}</div>
+                  <div class="rank-pill bg-primary text-white">{{ player.displayRank }}</div>
                 </div>
                 <div class="overview-item-icon">
                   <img
-                    [src]="player.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'"
+                    [src]="player.photo_url || '/images/default-player.webp'"
                     class="player-photo-mini" [alt]="player.name"
-                    onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'">
+                    onerror="this.src='/images/default-player.webp'">
                 </div>
                 <div class="overview-item-content">
                   <div class="fw-bold text-truncate">{{player.name}}</div>
@@ -229,7 +229,7 @@
                 <div class="overview-item-start">
                   <div class="rank-pill"
                     [ngClass]="{'bg-warning text-dark': $index === 0, 'bg-light border text-muted': $index > 0}">
-                    {{ $index + 1 }}
+                    {{ user.displayRank }}
                   </div>
                 </div>
                 <div class="overview-item-icon">

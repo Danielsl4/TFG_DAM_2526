@@ -129,7 +129,7 @@ export class Teams implements OnInit {
                   ${players.map(p => `
                     <tr>
                       <td>
-                        <img src="${p.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/jugadorgenerico.webp'}" 
+                        <img src="${p.photo_url || '/images/default-player.webp'}" 
                              class="player-photo-small">
                       </td>
                       <td class="text-start"><strong>${p.name}</strong></td>
@@ -194,25 +194,54 @@ export class Teams implements OnInit {
     const { value: confirmed } = await Swal.fire({
       title: 'Fichar Equipo Existente',
       html: `
+        <style>
+          .existing-results-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+          }
+          .player-search-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background 0.2s;
+          }
+          .player-search-item:hover { background: #f9f9f9; }
+          .player-search-item img.mini-photo {
+            width: 45px !important;
+            height: 45px !important;
+            border-radius: 50% !important;
+            object-fit: contain !important;
+            margin-right: 15px !important;
+            border: 2px solid #eee !important;
+            background: white;
+            padding: 4px;
+          }
+          .player-info-meta { text-align: left; flex: 1; }
+          .player-info-meta strong { display: block; color: #333; font-size: 1rem; }
+          .player-info-meta span { color: #888; font-size: 0.75rem; }
+        </style>
         <div class="swal-form">
           <p class="text-muted small mb-3">Busca un equipo que haya participado en otras temporadas para traerlo a la actual.</p>
           
           <div class="swal-field">
             <div class="search-container-swal">
               <input id="swal-team-search" class="swal-input-custom" placeholder="Escribe el nombre del equipo..." autocomplete="off">
-              <div id="swal-search-results" class="search-results-popover"></div>
+              <div id="swal-search-results" class="existing-results-container" style="display: none;"></div>
             </div>
           </div>
 
-          <div id="team-selection-info" class="selected-item-preview mt-3" style="display: none;">
-            <div class="selected-details">
-              <img id="selected-team-logo" src="" class="mini-photo">
-              <div class="info">
-                <strong id="selected-team-name"></strong>
-                <span>Equipo seleccionado</span>
-              </div>
+          <div id="team-selection-info" style="display: none;" class="mt-3 p-3 border-top bg-light rounded">
+            <h5 id="selected-team-name" class="mb-3 text-primary"></h5>
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <img id="selected-team-logo" src="" class="mini-photo" style="width: 50px; height: 50px; border-radius: 50%; object-fit: contain; background: white; border: 1px solid #ddd;">
+              <span class="text-muted">Equipo seleccionado para inscribir</span>
             </div>
-            <button id="btn-confirm-team-add" class="btn-primary w-100 mt-3" style="justify-content: center;">Confirmar Inscripción</button>
+            <button id="btn-confirm-team-add" class="btn-primary w-100 mt-2" style="justify-content: center;">Confirmar Inscripción</button>
           </div>
         </div>
       `,
@@ -238,11 +267,11 @@ export class Teams implements OnInit {
                 resultsContainer.innerHTML = '<p class="text-center p-3 text-muted">No se encontraron equipos disponibles.</p>';
               } else {
                 resultsContainer.innerHTML = availableTeams.map((t: any) => `
-                  <div class="player-search-item team-search-item" data-id="${t.id}" data-name="${t.name}" data-logo="${t.logo_url}">
-                    <img src="${t.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505578/tfg_futsal/general/escudogenerico.webp'}" class="mini-photo">
+                  <div class="player-search-item" data-id="${t.id}" data-name="${t.name}" data-logo="${t.logo_url}">
+                    <img src="${t.logo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/tfg_futsal/general/logogenericoequipo.webp'}" class="mini-photo">
                     <div class="player-info-meta">
                       <strong>${t.name}</strong>
-                      <span>${t.coach || 'Sin entrenador'}</span>
+                      <span style="font-size: 0.75rem; color: #777;">${t.coach || 'Sin entrenador'}</span>
                     </div>
                     <i class="fas fa-chevron-right" style="color: #ccc;"></i>
                   </div>
@@ -251,14 +280,14 @@ export class Teams implements OnInit {
               resultsContainer.style.display = 'block';
 
               // Eventos de selección
-              resultsContainer.querySelectorAll('.team-search-item').forEach(item => {
+              resultsContainer.querySelectorAll('.player-search-item').forEach(item => {
                 item.addEventListener('click', () => {
                   selectedTeamId = Number(item.getAttribute('data-id'));
                   const name = item.getAttribute('data-name');
                   const logo = item.getAttribute('data-logo');
 
                   (document.getElementById('selected-team-name') as HTMLElement).innerText = name || '';
-                  (document.getElementById('selected-team-logo') as HTMLImageElement).src = logo || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505578/tfg_futsal/general/escudogenerico.webp';
+                  (document.getElementById('selected-team-logo') as HTMLImageElement).src = logo || 'https://res.cloudinary.com/dyxl1d54d/image/upload/tfg_futsal/general/logogenericoequipo.webp';
                   
                   selectionInfo.style.display = 'block';
                   resultsContainer.style.display = 'none';
@@ -302,11 +331,23 @@ export class Teams implements OnInit {
         <div class="swal-form">
           <div class="swal-field">
             <label>Nombre del Equipo</label>
-            <input id="swal-name" class="swal-input-custom">
+            <input id="swal-name" class="swal-input-custom" placeholder="Nombre oficial">
           </div>
           <div class="swal-field">
             <label>Color de la Equipación</label>
             <input id="swal-color" class="swal-input-custom" placeholder="Ej: Blanco/Rojo">
+          </div>
+          <div class="swal-field">
+            <label>Delegado</label>
+            <input id="swal-delegate" class="swal-input-custom" placeholder="Nombre del delegado">
+          </div>
+          <div class="swal-field">
+            <label>Entrenador</label>
+            <input id="swal-coach" class="swal-input-custom" placeholder="Nombre del entrenador">
+          </div>
+          <div class="swal-field">
+            <label>Teléfono de contacto</label>
+            <input id="swal-phone" class="swal-input-custom" placeholder="Teléfono/Móvil">
           </div>
           <div class="swal-file-container">
             <label for="swal-file">
@@ -389,6 +430,9 @@ export class Teams implements OnInit {
         return {
           name,
           kit_color: (document.getElementById('swal-color') as HTMLInputElement).value,
+          delegate: (document.getElementById('swal-delegate') as HTMLInputElement).value,
+          coach: (document.getElementById('swal-coach') as HTMLInputElement).value,
+          phone: (document.getElementById('swal-phone') as HTMLInputElement).value,
           logo_url: uploadedLogoUrl
         };
       }
@@ -398,6 +442,7 @@ export class Teams implements OnInit {
       const seasonId = this.seasonService.currentSeasonId();
       const teamToCreate = { ...formValues, season_id: seasonId };
 
+      Swal.showLoading();
       this.apiService.createTeam(teamToCreate).subscribe({
         next: () => {
           Swal.fire('¡Creado!', 'El equipo ha sido creado correctamente.', 'success');
@@ -486,6 +531,7 @@ export class Teams implements OnInit {
     });
 
     if (formValues) {
+      Swal.showLoading();
       this.apiService.updateTeam(team.id, formValues).subscribe({
         next: () => {
           Swal.fire('¡Actualizado!', 'El equipo se ha actualizado correctamente.', 'success');
@@ -522,6 +568,31 @@ export class Teams implements OnInit {
             this.loadTeams();
           },
           error: (err) => Swal.fire('Error', 'No se pudo quitar al equipo de la temporada', 'error')
+        });
+      }
+    });
+  }
+
+  deleteTeamPermanent(team: any) {
+    Swal.fire({
+      title: '¿BORRADO DEFINITIVO?',
+      text: `¿Estás seguro de que quieres borrar el equipo ${team.name} de forma PERMANENTE? Se borrará también su logo de la nube y no se podrá recuperar. Solo funcionará si no tiene historial de partidos.`,
+      icon: 'error',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'SÍ, BORRAR PARA SIEMPRE',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.showLoading();
+        this.apiService.deleteTeamPermanent(team.id).subscribe({
+          next: (res) => {
+            Swal.fire('¡Borrado!', res.message, 'success');
+            this.loadTeams();
+          },
+          error: (err) => {
+            Swal.fire('No se pudo borrar', err.error.message || 'Error desconocido', 'error');
+          }
         });
       }
     });

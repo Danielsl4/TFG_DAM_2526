@@ -7,6 +7,7 @@ import {
 } from '@angular/forms';
 import { ApiService } from '../../../services/api-service';
 import { AuthService } from '../../../services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-login-component',
@@ -29,6 +30,7 @@ export class LoginComponent {
   successMessage = signal<string>('');
   showResendButton = signal<boolean>(false);
   resendLoading = signal<boolean>(false);
+  isLoading = signal<boolean>(false);
 
   profileForm = this.fb.nonNullable.group({
     username: ['', [Validators.required, Validators.minLength(5)]],
@@ -55,11 +57,11 @@ export class LoginComponent {
       this.errorMessage.set('');
       this.successMessage.set('');
       this.showResendButton.set(false);
+      this.isLoading.set(true);
 
       this.api.login(formData).subscribe({
         next: (respuesta) => {
-          console.log('Login exitoso:', respuesta);
-
+          this.isLoading.set(false);
           // Usar el servicio de autenticación centralizado
           if (respuesta.token) {
             this.authService.login(respuesta.token);
@@ -68,6 +70,7 @@ export class LoginComponent {
           }
         },
         error: (err) => {
+          this.isLoading.set(false);
           console.error('Error en el login', err);
           // Mostrar mensaje de error en el formulario (puede venir del backend, ej. correo no verificado)
           this.errorMessage.set(err.error?.message || 'Error al iniciar sesión. Verifica tus credenciales.');
@@ -91,9 +94,34 @@ export class LoginComponent {
 
     this.api.resendVerification(username).subscribe({
       next: (res) => {
-        this.successMessage.set(res.message);
-        this.showResendButton.set(false);
         this.resendLoading.set(false);
+        this.showResendButton.set(false);
+
+        if (res.emailSent === false && res.verificationToken) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Servicio de Correo No Disponible',
+            html: `
+              <p>No se pudo enviar el correo electrónico de verificación en este momento por problemas técnicos del servidor.</p>
+              <p style="font-size: 0.9rem; color: #a0aec0;">No te preocupes: puedes activar tu cuenta inmediatamente pulsando en el botón inferior.</p>
+            `,
+            confirmButtonText: 'Activar Cuenta Ahora',
+            confirmButtonColor: '#2ec4b6',
+            allowOutsideClick: false
+          }).then((result) => {
+            if (result.isConfirmed) {
+              this.router.navigate(['/verify-email'], { queryParams: { token: res.verificationToken } });
+            }
+          });
+        } else {
+          this.successMessage.set(res.message);
+          Swal.fire({
+            icon: 'success',
+            title: 'Correo Enviado',
+            text: res.message,
+            confirmButtonColor: 'var(--primario)'
+          });
+        }
       },
       error: (err) => {
         this.errorMessage.set(err.error?.message || 'Error al reenviar el correo.');

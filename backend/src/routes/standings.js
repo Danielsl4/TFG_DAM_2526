@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../../db");
-const { redis } = require("../utils/cache");
+const { redis, safeRedis } = require("../utils/cache");
 
 const STANDINGS_CACHE_KEY = "standings";
 const CACHE_TTL = 3600; // 1 hora (se invalida manualmente al terminar partidos)
@@ -11,11 +11,12 @@ router.get("/", async (req, res) => {
   const { season_id } = req.query;
   const cacheKey = season_id ? `${STANDINGS_CACHE_KEY}:${season_id}` : STANDINGS_CACHE_KEY;
 
+  const cachedData = await safeRedis.get(cacheKey);
+  if (cachedData) {
+    return res.json(JSON.parse(cachedData));
+  }
+
   try {
-    const cachedData = await redis.get(cacheKey);
-    if (cachedData) {
-      return res.json(JSON.parse(cachedData));
-    }
 
     // Si no se pasa season_id, buscamos la temporada activa
     let seasonFilter = "s.is_active = true";
@@ -124,7 +125,7 @@ router.get("/", async (req, res) => {
     };
 
     // Guardar en caché antes de responder
-    await redis.set(cacheKey, JSON.stringify(standingsData), "EX", CACHE_TTL);
+    await safeRedis.set(cacheKey, JSON.stringify(standingsData), "EX", CACHE_TTL);
 
     res.json(standingsData);
   } catch (err) {

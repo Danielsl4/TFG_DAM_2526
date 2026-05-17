@@ -43,6 +43,17 @@ export class Statistics implements OnInit {
     }
   }
 
+  calculateRanks(list: any[], valueField: string): any[] {
+    if (!list) return [];
+    let currentRank = 1;
+    return list.map((item, index) => {
+      if (index > 0 && item[valueField] < list[index - 1][valueField]) {
+        currentRank = index + 1;
+      }
+      return { ...item, displayRank: currentRank };
+    });
+  }
+
   fetchStatistics(seasonId?: number): void {
     const id = seasonId ?? this.seasonService.currentSeasonId();
     if (id === null) return;
@@ -50,6 +61,11 @@ export class Statistics implements OnInit {
     this.isLoading.set(true);
     this.apiService.getStatistics(id).subscribe({
       next: (data) => {
+        if (data.individualRankings) {
+          data.individualRankings.topScorers = this.calculateRanks(data.individualRankings.topScorers, 'value');
+          data.individualRankings.topYellowCards = this.calculateRanks(data.individualRankings.topYellowCards, 'value');
+          data.individualRankings.topRedCards = this.calculateRanks(data.individualRankings.topRedCards, 'value');
+        }
         this.stats.set(data);
         this.isLoading.set(false);
       },
@@ -66,7 +82,7 @@ export class Statistics implements OnInit {
     this.loading.userRanking = true;
     this.apiService.getUserRanking(id || undefined).subscribe({
       next: (ranking) => {
-        this.userRanking.set(ranking);
+        this.userRanking.set(this.calculateRanks(ranking, 'points'));
         this.loading.userRanking = false;
       },
       error: () => this.loading.userRanking = false

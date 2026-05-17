@@ -73,9 +73,14 @@
             </div>
 
             <div class="d-grid gap-2 mt-2">
-              <button type="submit" [disabled]="profileForm.invalid"
+              <button type="submit" [disabled]="profileForm.invalid || isLoading()"
                 class="btn btn-primary btn-lg rounded-pill fw-bold py-2 shadow-sm transition-all">
-                Entrar ahora
+                @if (isLoading()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Iniciando sesión...
+                } @else {
+                  Entrar ahora
+                }
               </button>
             </div>
           </form>
@@ -90,4 +95,4 @@
       </div>
     </div>
   </div>
-</div>
+</div>

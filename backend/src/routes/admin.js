@@ -60,13 +60,12 @@ router.get("/summary", verifyToken, verifyAdmin, async (req, res) => {
       SELECT al.*, u.username 
       FROM audit_logs al
       LEFT JOIN users u ON al.user_id = u.id
-      WHERE $1::text IS NULL 
-         OR al.details->>'season_id' = $1::text 
-         OR al.details->>'season_id' IS NULL
+      WHERE ($1::integer IS NULL) 
+         OR (al.season_id = $1::integer OR al.season_id IS NULL)
       ORDER BY al.created_at DESC 
       LIMIT 5
     `,
-      [season_id || null],
+      [season_id && season_id !== 'null' && season_id !== '' ? parseInt(season_id) : null],
     );
 
     res.json({
@@ -142,7 +141,7 @@ router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       whereClauses.length > 0 ? "WHERE " + whereClauses.join(" AND ") : "";
 
     let query = `
-      SELECT u.id, u.username, u.email, u.role, u.created_at
+      SELECT u.id, u.username, u.email, u.role, u.is_verified, u.verification_token, u.created_at
       FROM users u
       ${whereSql}
       ORDER BY u.created_at DESC 
@@ -228,6 +227,35 @@ router.delete("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
+router.post("/users/:id/verify", verifyToken, verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+  const adminId = req.authData.id;
+
+  try {
+    const userRes = await db.query("SELECT username, is_verified FROM users WHERE id = $1", [id]);
+    if (userRes.rows.length === 0) return res.status(404).json({ message: "Usuario no encontrado" });
+
+    const user = userRes.rows[0];
+    if (user.is_verified) {
+      return res.status(400).json({ message: "El usuario ya está verificado" });
+    }
+
+    await db.query(
+      "UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE id = $1",
+      [id]
+    );
+
+    await logAction(adminId, "Verificación manual de usuario (Admin)", "user", id, {
+      name: user.username,
+    });
+
+    res.json({ message: "Usuario verificado manualmente con éxito" });
+  } catch (err) {
+    console.error("Error al verificar usuario:", err);
+    res.status(500).json({ message: "Error al verificar usuario" });
+  }
+});
+
 /**
  * Listado de logs de auditoría (Admin)
  */
@@ -241,11 +269,12 @@ router.get("/logs", verifyToken, verifyAdmin, async (req, res) => {
     let pIdx = 1;
 
     // Filtro de temporada (opcional)
-    if (season_id) {
+    if (season_id && season_id !== 'null' && season_id !== '') {
+      const sId = parseInt(season_id);
       whereClauses.push(
-        `(al.details->>'season_id' = $${pIdx}::text OR al.details->>'season_id' IS NULL)`,
+        `(al.season_id = $${pIdx}::integer OR al.season_id IS NULL)`,
       );
-      filterValues.push(season_id);
+      filterValues.push(sId);
       pIdx++;
     }
 

@@ -175,6 +175,7 @@ async function initDb() {
           verification_token VARCHAR(255) DEFAULT NULL,
           reset_token VARCHAR(255) DEFAULT NULL,
           reset_token_expires TIMESTAMP DEFAULT NULL,
+          recovery_key VARCHAR(255) DEFAULT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -254,6 +255,7 @@ async function initDb() {
           entity_type VARCHAR(50),
           entity_id INTEGER,
           details JSONB,
+          season_id INTEGER REFERENCES seasons(id) ON DELETE SET NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);

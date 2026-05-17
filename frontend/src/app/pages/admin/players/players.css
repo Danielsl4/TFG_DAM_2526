@@ -139,11 +139,23 @@
   color: #9c27b0;
 }
 
-.btn-icon.delete-global:hover {
-  background: #9c27b0;
+.btn-icon.delete:hover {
+  background: #f44336;
   color: white;
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.4);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+.btn-icon.delete-permanent {
+  background: rgba(183, 28, 28, 0.1);
+  color: #b71c1c;
+}
+
+.btn-icon.delete-permanent:hover {
+  background: #b71c1c;
+  color: white;
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(183, 28, 28, 0.5);
 }
 
 .btn-primary {

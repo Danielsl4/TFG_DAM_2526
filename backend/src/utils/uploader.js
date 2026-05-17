@@ -104,9 +104,7 @@ async function deleteImage(url) {
     const fullPublicIdWithExt = pathParts.join('/');
     const publicId = fullPublicIdWithExt.split('.')[0];
 
-    console.log(`Intentando eliminar de Cloudinary: ${publicId}`);
-    const result = await cloudinary.uploader.destroy(publicId);
-    console.log("Resultado Cloudinary:", result);
+    await cloudinary.uploader.destroy(publicId);
   } catch (err) {
     console.error("Error al eliminar imagen de Cloudinary:", err);
   }

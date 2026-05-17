@@ -92,9 +92,14 @@
             </div>
 
             <div class="d-grid gap-2 mt-3">
-              <button type="submit" [disabled]="profileForm.invalid"
+              <button type="submit" [disabled]="profileForm.invalid || isLoading()"
                 class="btn btn-primary btn-lg rounded-pill fw-bold py-2 shadow-sm transition-all">
-                Crear mi cuenta
+                @if (isLoading()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Creando cuenta...
+                } @else {
+                  Crear mi cuenta
+                }
               </button>
             </div>
           </form>
@@ -109,4 +114,4 @@
       </div>
     </div>
   </div>
-</div>
+</div>

@@ -275,7 +275,8 @@ router.delete("/:id/season/:seasonId", verifyToken, verifyAdmin, async (req, res
       "Eliminación de equipo de temporada",
       "team",
       teamId,
-      { name: teamName, season_id: seasonId }
+      { name: teamName, season_id: seasonId },
+      seasonId
     );
 
     res.json({ message: "Equipo eliminado de la temporada correctamente" });
@@ -296,6 +297,25 @@ router.get("/admin/trash", verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
+// Obtener equipos huérfanos (Sin ninguna asociación a temporadas o partidos)
+router.get("/admin/orphans", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const query = `
+      SELECT t.* 
+      FROM teams t
+      WHERE NOT EXISTS (SELECT 1 FROM team_stats ts WHERE ts.team_id = t.id)
+        AND NOT EXISTS (SELECT 1 FROM team_players tp WHERE tp.team_id = t.id)
+        AND NOT EXISTS (SELECT 1 FROM matches m WHERE m.home_team_id = t.id OR m.away_team_id = t.id)
+      ORDER BY t.name ASC
+    `;
+    const result = await db.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error al obtener equipos huérfanos" });
+  }
+});
+
 // Obtener reporte masivo de equipos para la temporada (Equipos + Jugadores)
 router.get("/admin/report", verifyToken, verifyAdmin, async (req, res) => {
   const { season_id } = req.query;
@@ -307,7 +327,7 @@ router.get("/admin/report", verifyToken, verifyAdmin, async (req, res) => {
   try {
     // Buscar equipos que tengan jugadores o estadísticas en esta temporada
     const teamsQuery = `
-      SELECT t.id, t.name, t.delegate, t.coach, t.phone
+      SELECT t.id, t.name, t.delegate, t.coach, t.phone, t.kit_color
       FROM teams t
       WHERE t.is_active = true AND (
         EXISTS (SELECT 1 FROM team_stats ts WHERE ts.team_id = t.id AND ts.season_id = $1)
@@ -362,7 +382,46 @@ router.post("/:id/restore", verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
-// El borrado permanente ha sido deshabilitado para preservar el historial y los logos de Cloudinary.
+// Eliminar un equipo definitivamente (Solo Admin)
+router.delete("/:id/permanent", verifyToken, verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    // 1. Verificar si tiene asociaciones críticas que impidan el borrado
+    const matchesCheck = await db.query("SELECT id FROM matches WHERE home_team_id = $1 OR away_team_id = $1 LIMIT 1", [id]);
+    if (matchesCheck.rows.length > 0) {
+      return res.status(400).json({ message: "No se puede eliminar permanentemente: el equipo tiene historial de partidos." });
+    }
+
+    const statsCheck = await db.query("SELECT 1 FROM team_stats WHERE team_id = $1 LIMIT 1", [id]);
+    if (statsCheck.rows.length > 0) {
+      return res.status(400).json({ message: "No se puede eliminar permanentemente: el equipo está inscrito en alguna temporada." });
+    }
+
+    // 2. Obtener logo_url para borrarlo de Cloudinary
+    const teamRes = await db.query("SELECT name, logo_url FROM teams WHERE id = $1", [id]);
+    if (teamRes.rows.length === 0) return res.status(404).json({ message: "Equipo no encontrado" });
+    const team = teamRes.rows[0];
+
+    // 3. Borrar imagen de Cloudinary
+    if (team.logo_url) {
+      try {
+        await deleteImage(team.logo_url);
+      } catch (imgErr) {
+        console.error("Error al borrar imagen de Cloudinary:", imgErr);
+        // Continuamos con el borrado en BD aunque falle Cloudinary
+      }
+    }
+
+    // 4. Borrado físico de la BD
+    await db.query("DELETE FROM teams WHERE id = $1", [id]);
+    
+    await logAction(req.authData.id, 'Eliminación permanente de equipo', 'team', id, { name: team.name });
+    res.json({ message: "Equipo eliminado definitivamente de la base de datos" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error al eliminar definitivamente" });
+  }
+});
 
 // Seguir/Dejar de seguir equipo
 router.post("/:id/toggle-follow", verifyToken, async (req, res) => {
@@ -429,7 +488,7 @@ router.post("/:id/register", verifyToken, verifyAdmin, async (req, res) => {
     );
 
     // Auditoría
-    await logAction(req.authData.id, 'Inscripción de equipo existente', 'team', teamId, { season_id });
+    await logAction(req.authData.id, 'Inscripción de equipo existente', 'team', teamId, { season_id }, season_id);
 
     res.status(201).json({ message: "Equipo inscrito correctamente" });
   } catch (err) {

@@ -42,21 +42,21 @@
           @if (isGeneratingStandingsPdf()) {
             <span class="spinner-border spinner-border-sm me-1"></span> Generando...
           } @else {
-            <i class="bi bi-list-ol me-1"></i> Dossier Clasificación
+            <i class="bi bi-list-ol me-1"></i> PDF Clasificación
           }
         </button>
         <button class="btn btn-secondary btn-sm rounded-pill px-3 shadow-sm flex-grow-1 flex-md-grow-0" (click)="downloadTeamsDossier()" [disabled]="isGeneratingTeamsPdf()">
           @if (isGeneratingTeamsPdf()) {
             <span class="spinner-border spinner-border-sm me-1"></span> Generando...
           } @else {
-            <i class="bi bi-shield-shaded me-1"></i> Dossier Equipos
+            <i class="bi bi-shield-shaded me-1"></i> PDF Equipos
           }
         </button>
         <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm flex-grow-1 flex-md-grow-0" (click)="downloadDossier()" [disabled]="isGeneratingPdf()">
           @if (isGeneratingPdf()) {
             <span class="spinner-border spinner-border-sm me-1"></span> Generando...
           } @else {
-            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Dossier Temporada
+            <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF Actas Partidos
           }
         </button>
       </div>

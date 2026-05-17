@@ -30,7 +30,7 @@
           <a [routerLink]="['/teams', item.id]" style="text-decoration: none; color: inherit;"
             class="d-flex align-items-center gap-3">
             <img [src]="item.team_logo || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" class="team-logo-small"
-              onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+              onerror="this.src='/images/default-team.webp'">
             <span class="text-truncate fw-semibold">{{ item.team_name }}</span>
           </a>
         </td>

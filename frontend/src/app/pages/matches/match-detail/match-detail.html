@@ -11,7 +11,7 @@
         @if (match.homeTeam) {
         <a href="/teams/{{ match.homeTeam.id }}" style="text-decoration: none; color: black;">
           <img [src]="match.homeTeam.logoUrl" alt="Logo" class="team-logo mb-3"
-            onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+            onerror="this.src='/images/default-team.webp'">
           <h3 class="team-name">{{ match.homeTeam.name }}</h3>
         </a>
         } @else {
@@ -54,7 +54,7 @@
         @if (match.awayTeam) {
         <a href="/teams/{{ match.awayTeam.id }}" style="text-decoration: none; color: black;">
           <img [src]="match.awayTeam.logoUrl" alt="Logo" class="team-logo mb-3"
-            onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+            onerror="this.src='/images/default-team.webp'">
           <h3 class="team-name">{{ match.awayTeam.name }}</h3>
         </a>
         } @else {
@@ -245,8 +245,12 @@
       </button>
 
       @if (canManage()) {
-      <button class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="onManageMatch()">
-        <i class="bi bi-gear-fill me-2"></i> Gestionar Partido
+      <button class="btn btn-primary rounded-pill px-4 shadow-sm" [disabled]="isManagingMatch()" (click)="onManageMatch()">
+        @if (isManagingMatch()) {
+          <span class="spinner-border spinner-border-sm me-2"></span> Entrando...
+        } @else {
+          <i class="bi bi-gear-fill me-2"></i> Gestionar Partido
+        }
       </button>
       }
     </div>
@@ -364,13 +368,13 @@
                 <button
                   class="btn flex-grow-1 py-3 rounded-3 d-flex flex-column align-items-center border btn-outline-primary"
                   [class.active]="selectedTeamSide() === 'home'" (click)="selectedTeamSide.set('home'); onTeamSelect()">
-                  <img [src]="match.homeTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" class="mb-2" width="40" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                  <img [src]="match.homeTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" class="mb-2" width="40" onerror="this.src='/images/default-team.webp'">
                   <span class="small fw-bold">{{ match.homeTeam?.name || match.homeTeamPlaceholder || 'Local' }}</span>
                 </button>
                 <button
                   class="btn flex-grow-1 py-3 rounded-3 d-flex flex-column align-items-center border btn-outline-primary"
                   [class.active]="selectedTeamSide() === 'away'" (click)="selectedTeamSide.set('away'); onTeamSelect()">
-                  <img [src]="match.awayTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" class="mb-2" width="40" onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+                  <img [src]="match.awayTeam?.logoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'" class="mb-2" width="40" onerror="this.src='/images/default-team.webp'">
                   <span class="small fw-bold">{{ match.awayTeam?.name || match.awayTeamPlaceholder || 'Visitante' }}</span>
                 </button>
               </div>
@@ -380,7 +384,7 @@
             <div class="col-md-6">
               <label class="form-label fw-bold text-muted small uppercase">2. Acción</label>
               <select class="form-select form-select-lg rounded-3 mb-3" [(ngModel)]="selectedEventType">
-                <option value="gol">⚽ Gol</option>
+                <option value="gol"> Gol</option>
                 <option value="tarjeta_amarilla">🟨 Tarjeta Amarilla</option>
                 <option value="tarjeta_roja">🟥 Tarjeta Roja</option>
               </select>
@@ -466,12 +470,12 @@
 
           <div class="row g-3">
             <div class="col-6">
-              <button class="btn btn-success btn-lg w-100 py-3 rounded-3 shadow-sm" (click)="submitPenalty(true)" [disabled]="!selectedPenaltyPlayerId()">
+              <button class="btn btn-success btn-lg w-100 py-3 rounded-3 shadow-sm" (click)="submitPenalty(true)" [disabled]="!selectedPenaltyPlayerId() || isSubmittingEvent()">
                 <i class="bi bi-check-circle me-2"></i> MARCADO
               </button>
             </div>
             <div class="col-6">
-              <button class="btn btn-danger btn-lg w-100 py-3 rounded-3 shadow-sm" (click)="submitPenalty(false)" [disabled]="!selectedPenaltyPlayerId()">
+              <button class="btn btn-danger btn-lg w-100 py-3 rounded-3 shadow-sm" (click)="submitPenalty(false)" [disabled]="!selectedPenaltyPlayerId() || isSubmittingEvent()">
                 <i class="bi bi-x-circle me-2"></i> FALLADO
               </button>
             </div>

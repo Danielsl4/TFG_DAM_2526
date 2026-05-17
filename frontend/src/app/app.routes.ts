@@ -22,6 +22,7 @@ import { Players } from './pages/admin/players/players';
 import { Users as AdminUsers } from './pages/admin/users/users';
 import { Competitions } from './pages/admin/competitions/competitions';
 import { Logs } from './pages/admin/logs/logs';
+import { Maintenance } from './pages/admin/maintenance/maintenance';
 import { adminGuard } from './guards/admin.guard';
 import { NotFound } from './pages/not-found/not-found';
 
@@ -62,6 +63,7 @@ export const routes: Routes = [
       { path: 'users', component: AdminUsers },
       { path: 'competitions', component: Competitions },
       { path: 'logs', component: Logs },
+      { path: 'maintenance', component: Maintenance },
     ]
   },
 

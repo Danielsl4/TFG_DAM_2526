@@ -3,10 +3,11 @@ const router = express.Router();
 const db = require("../../db");
 const {
   redis,
-  invalidateMatchCache,
+  safeRedis,
   CACHE_TTL_MS,
   updateGlobalLastActivity,
   getGlobalLastActivity,
+  invalidateMatchCache,
 } = require("../utils/cache");
 const {
   verifyToken,
@@ -59,10 +60,10 @@ router.post("/", verifyToken, verifyAdmin, async (req, res) => {
     const result = await db.query(query, values);
     const newMatchId = result.rows[0].id;
 
-    // Invalidar cachés relacionadas
-    await redis.del("all_matches");
-    await redis.del("matches:current");
-    await redis.del(`matches:season:${seasonId}`);
+    // Invalidar cachés relacionadas de forma segura
+    await safeRedis.del("all_matches");
+    await safeRedis.del("matches:current");
+    await safeRedis.del(`matches:season:${seasonId}`);
 
     // Auditoría
     await logAction(
@@ -76,6 +77,7 @@ router.post("/", verifyToken, verifyAdmin, async (req, res) => {
         date,
         season_id: seasonId,
       },
+      seasonId
     );
 
     res
@@ -103,10 +105,10 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
 
     const seasonId = result.rows[0].season_id;
 
-    // Invalidar cachés
-    await redis.del("all_matches");
-    await redis.del(`matches:season:${seasonId}`);
-    await redis.del(`match:${id}`);
+    // Invalidar cachés de forma segura
+    await safeRedis.del("all_matches");
+    await safeRedis.del(`matches:season:${seasonId}`);
+    await safeRedis.del(`match:${id}`);
 
     // Auditoría
     await logAction(req.authData.id, "Eliminación lógica de partido", "match", id);
@@ -148,10 +150,13 @@ router.get("/admin/report", verifyToken, verifyAdmin, async (req, res) => {
              m.home_penalty_goals, m.away_penalty_goals,
              t1.name as home_team_name, t2.name as away_team_name,
              m.home_team_placeholder, m.away_team_placeholder,
-             m.observations
+             m.observations, f.name as field_name, g.name as group_name,
+             m.phase
       FROM matches m
       LEFT JOIN teams t1 ON m.home_team_id = t1.id
       LEFT JOIN teams t2 ON m.away_team_id = t2.id
+      LEFT JOIN fields f ON m.field_id = f.id
+      LEFT JOIN groups g ON m.group_id = g.id
       WHERE m.is_active = true AND m.status = 'finalizado' 
       ${season_id ? "AND m.season_id = $1" : ""}
       ORDER BY m.date ASC
@@ -197,8 +202,8 @@ router.post("/:id/restore", verifyToken, verifyAdmin, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ message: "Partido no encontrado" });
     
     const seasonId = result.rows[0].season_id;
-    await redis.del("all_matches");
-    await redis.del(`matches:season:${seasonId}`);
+    await safeRedis.del("all_matches");
+    await safeRedis.del(`matches:season:${seasonId}`);
     
     await logAction(req.authData.id, "Restauración de partido", "match", id);
     res.json({ message: "Partido restaurado correctamente" });
@@ -246,14 +251,10 @@ router.get("/", optionalVerifyToken, async (req, res) => {
   const cacheKey = userId ? `${baseKey}:user:${userId}` : baseKey;
 
   // Verificar si está en Redis
-  try {
-    const cachedData = await redis.get(cacheKey);
+    const cachedData = await safeRedis.get(cacheKey);
     if (cachedData) {
       return res.json(JSON.parse(cachedData));
     }
-  } catch (err) {
-    console.error("Error al leer de Redis:", err);
-  }
 
   // Si hay una petición IGUAL en marcha, esperamos a que termine
   if (inflightRequests[cacheKey]) {
@@ -359,8 +360,8 @@ router.get("/", optionalVerifyToken, async (req, res) => {
         },
       }));
 
-      // Guardar en Redis
-      await redis.set(
+      // Guardar en Redis de forma segura
+      await safeRedis.set(
         cacheKey,
         JSON.stringify(formattedMatches),
         "EX",
@@ -387,12 +388,8 @@ router.get("/:id", optionalVerifyToken, async (req, res) => {
   const userId = req.authData ? req.authData.id : null;
   const cacheKey = userId ? `match:${id}:user:${userId}` : `match:${id}`;
 
-  try {
-    const cachedData = await redis.get(cacheKey);
+    const cachedData = await safeRedis.get(cacheKey);
     if (cachedData) return res.json(JSON.parse(cachedData));
-  } catch (err) {
-    console.error("Redis Error:", err);
-  }
 
   if (inflightRequests[id]) {
     try {
@@ -508,7 +505,7 @@ router.get("/:id", optionalVerifyToken, async (req, res) => {
         })),
       };
 
-      await redis.set(cacheKey, JSON.stringify(match), "EX", CACHE_TTL_MS);
+      await safeRedis.set(cacheKey, JSON.stringify(match), "EX", CACHE_TTL_MS);
       return match;
     } finally {
       delete inflightRequests[id];
@@ -589,11 +586,11 @@ router.post("/:id/vote", verifyToken, async (req, res) => {
 
     res.json({ message: "Voto registrado correctamente", votingStats });
 
-    // Invalidación manual de caché
-    await redis.del(`match:${id}`);
-    await redis.del(`match:${id}:user:${userId}`);
-    await redis.del("all_matches");
-    await redis.del(`matches_user_${userId}`);
+    // Invalidación manual de caché de forma segura
+    await safeRedis.del(`match:${id}`);
+    await safeRedis.del(`match:${id}:user:${userId}`);
+    await safeRedis.del("all_matches");
+    await safeRedis.del(`matches_user_${userId}`);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error al registrar el voto" });
@@ -805,7 +802,7 @@ router.post(
         playerId,
         teamSide,
         season_id: seasonId,
-      });
+      }, seasonId);
 
       res.json({ message: "Evento registrado correctamente" });
     } catch (err) {
@@ -932,13 +929,16 @@ router.put("/:id/teams", verifyToken, verifyAdmin, async (req, res) => {
     await invalidateMatchCache(id);
     await updateGlobalLastActivity();
 
-    // Auditoría
+    // Auditoría (necesitamos el season_id para el log)
+    const matchData = await db.query("SELECT season_id FROM matches WHERE id = $1", [id]);
+    const sId = matchData.rows[0]?.season_id;
+
     await logAction(req.authData.id, "Actualización de equipos", "match", id, {
       homeTeamId,
       awayTeamId,
       homePlaceholder,
       awayPlaceholder,
-    });
+    }, sId);
 
     res.json({ message: "Equipos actualizados correctamente", success: true });
   } catch (err) {
@@ -1066,11 +1066,18 @@ router.put(
       await updateGlobalLastActivity();
 
       // Auditoría
-      await logAction(req.authData.id, "Finalización de partido", "match", id, {
-        home_goals: match.home_goals,
-        away_goals: match.away_goals,
-        season_id: match.season_id,
-      });
+      await logAction(
+        req.authData.id,
+        "Finalización de partido",
+        "match",
+        id,
+        {
+          homeGoals: match.home_goals,
+          awayGoals: match.away_goals,
+          season_id: match.season_id,
+        },
+        match.season_id
+      );
 
       res.json({
         message: "Partido finalizado, clasificación y porra actualizadas",

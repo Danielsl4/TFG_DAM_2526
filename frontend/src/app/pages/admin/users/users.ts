@@ -138,4 +138,54 @@ export class Users implements OnInit {
       }
     });
   }
+
+  verifyUser(user: any) {
+    Swal.fire({
+      title: '¿Verificar usuario manualmente?',
+      text: `Vas a verificar la cuenta de ${user.username} de forma manual. Esto le permitirá iniciar sesión de inmediato.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: 'var(--secundario)',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Sí, verificar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.showLoading();
+        this.apiService.verifyAdminUser(user.id).subscribe({
+          next: () => {
+            Swal.fire('¡Verificado!', 'El usuario ha sido verificado correctamente.', 'success');
+            this.loadUsers();
+          },
+          error: (err) => {
+            Swal.fire('Error', err.error.message || 'No se pudo verificar el usuario', 'error');
+          }
+        });
+      }
+    });
+  }
+
+  copyVerificationLink(user: any) {
+    if (!user.verification_token) return;
+    const link = `${window.location.origin}/verify-email?token=${user.verification_token}`;
+    
+    navigator.clipboard.writeText(link).then(() => {
+      const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        background: '#1C1F26',
+        color: '#EDEDED'
+      });
+      Toast.fire({
+        icon: 'success',
+        title: 'Enlace copiado al portapapeles'
+      });
+    }).catch(err => {
+      console.error('No se pudo copiar el enlace:', err);
+      Swal.fire('Enlace de Verificación', link, 'info');
+    });
+  }
 }

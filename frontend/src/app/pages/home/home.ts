@@ -114,14 +114,26 @@ export class Home implements OnInit {
     });
   }
 
+  calculateRanks(list: any[], valueField: string): any[] {
+    let currentRank = 1;
+    return list.map((item, index) => {
+      if (index > 0 && item[valueField] < list[index - 1][valueField]) {
+        currentRank = index + 1;
+      }
+      return { ...item, displayRank: currentRank };
+    });
+  }
+
   fetchStatistics(seasonId: number | null): void {
     this.apiService.getStatistics(seasonId || undefined).subscribe({
       next: (stats) => {
+        let rawScorers = [];
         if (stats.individualRankings?.topScorers) {
-          this.topScorers = stats.individualRankings.topScorers.slice(0, 5);
+          rawScorers = stats.individualRankings.topScorers;
         } else if (stats.topScorers) {
-          this.topScorers = stats.topScorers.slice(0, 5);
+          rawScorers = stats.topScorers;
         }
+        this.topScorers = this.calculateRanks(rawScorers.slice(0, 5), 'value');
         this.loading.statistics = false;
       },
       error: () => this.loading.statistics = false
@@ -132,7 +144,7 @@ export class Home implements OnInit {
     this.loading.userRanking = true;
     this.apiService.getUserRanking(seasonId || undefined).subscribe({
       next: (ranking) => {
-        this.userRanking = ranking.slice(0, 5);
+        this.userRanking = this.calculateRanks(ranking.slice(0, 5), 'points');
         this.loading.userRanking = false;
       },
       error: () => this.loading.userRanking = false

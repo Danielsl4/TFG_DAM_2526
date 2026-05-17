@@ -162,11 +162,8 @@ export class Players implements OnInit {
           if (file) {
             Swal.showLoading();
             const playerName = (document.getElementById('swal-name') as HTMLInputElement).value;
-            const teamId = (document.getElementById('swal-team') as HTMLSelectElement).value;
-            const team = this.teams.find(t => t.id == teamId);
-            const folder = team ? `players/${team.name}` : 'players';
 
-            this.apiService.uploadImage(file, folder, playerName).subscribe({
+            this.apiService.uploadImage(file, 'players', playerName).subscribe({
               next: (res) => {
                 uploadedPhotoUrl = res.url;
                 const preview = document.getElementById('swal-preview') as HTMLElement;
@@ -187,7 +184,7 @@ export class Players implements OnInit {
         return {
           name,
           birth_date: (document.getElementById('swal-birth') as HTMLInputElement).value,
-          photo_url: uploadedPhotoUrl || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp',
+          photo_url: uploadedPhotoUrl || '/images/default-player.webp',
           team_id: (document.getElementById('swal-team') as HTMLSelectElement).value,
           jersey_number: (document.getElementById('swal-dorsal-create') as HTMLInputElement).value
         };
@@ -200,20 +197,21 @@ export class Players implements OnInit {
 
       this.apiService.createPlayer(formValues).subscribe({
         next: (res) => {
-          // Si se seleccionó equipo y hay temporada seleccionada, inscribir al jugador
-          if (formValues.team_id && seasonId) {
+          // Si hay temporada seleccionada, inscribir al jugador (tenga equipo o no)
+          if (seasonId) {
             this.apiService.registerPlayer({
               player_id: res.player.id,
-              team_id: Number(formValues.team_id),
+              team_id: formValues.team_id ? Number(formValues.team_id) : null,
               season_id: seasonId,
               jersey_number: formValues.jersey_number || null
             }).subscribe({
               next: () => {
-                Swal.fire('¡Creado e Inscrito!', 'El jugador ha sido creado e inscrito correctamente.', 'success');
+                const msg = formValues.team_id ? 'El jugador ha sido creado e inscrito en el equipo.' : 'El jugador ha sido creado e inscrito en la temporada (sin equipo).';
+                Swal.fire('¡Listo!', msg, 'success');
                 this.loadPlayers();
               },
               error: () => {
-                Swal.fire('Atención', 'Jugador creado pero hubo un error al inscribirlo en el equipo.', 'warning');
+                Swal.fire('Atención', 'Jugador creado pero hubo un error al inscribirlo en la temporada.', 'warning');
                 this.loadPlayers();
               }
             });
@@ -328,7 +326,7 @@ export class Players implements OnInit {
 
               resultsContainer.innerHTML = availablePlayers.map((p: any) => `
                 <div class="player-search-item" data-id="${p.id}" data-name="${p.name}">
-                  <img src="${p.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'}" class="mini-photo">
+                  <img src="${p.photo_url || '/images/default-player.webp'}" class="mini-photo">
                   <div class="player-info-meta">
                     <strong>${p.name}</strong>
                     <span style="font-size: 0.75rem; color: #777;">
@@ -536,4 +534,28 @@ export class Players implements OnInit {
     });
   }
 
+  deletePlayerPermanent(player: any) {
+    Swal.fire({
+      title: '¿BORRADO DEFINITIVO?',
+      text: `¿Estás seguro de que quieres borrar a ${player.name} de forma PERMANENTE? Se borrará también su foto de la nube y no se podrá recuperar. Solo funcionará si no tiene historial de goles o tarjetas.`,
+      icon: 'error',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'SÍ, BORRAR PARA SIEMPRE',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.showLoading();
+        this.apiService.deletePlayerPermanent(player.id).subscribe({
+          next: (res) => {
+            Swal.fire('¡Borrado!', res.message, 'success');
+            this.loadPlayers();
+          },
+          error: (err) => {
+            Swal.fire('No se pudo borrar', err.error.message || 'Error desconocido', 'error');
+          }
+        });
+      }
+    });
+  }
 }

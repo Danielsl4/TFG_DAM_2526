@@ -39,21 +39,21 @@ router.get("/", async (req, res) => {
       FROM player_stats ps JOIN players p ON ps.player_id = p.id
       JOIN team_players tp ON p.id = tp.player_id AND tp.season_id = ps.season_id
       JOIN teams t ON tp.team_id = t.id 
-      WHERE ps.season_id = ${seasonCondition} ORDER BY ps.goals DESC
+      WHERE ps.season_id = ${seasonCondition} ORDER BY ps.goals DESC, p.name ASC
     `;
     const topYellowsQuery = `
       SELECT p.id, p.name, p.photo_url, t.name as team_name, ps.yellow_cards as value
       FROM player_stats ps JOIN players p ON ps.player_id = p.id
       JOIN team_players tp ON p.id = tp.player_id AND tp.season_id = ps.season_id
       JOIN teams t ON tp.team_id = t.id 
-      WHERE ps.season_id = ${seasonCondition} AND ps.yellow_cards > 0 ORDER BY ps.yellow_cards DESC
+      WHERE ps.season_id = ${seasonCondition} AND ps.yellow_cards > 0 ORDER BY ps.yellow_cards DESC, p.name ASC
     `;
     const topRedsQuery = `
       SELECT p.id, p.name, p.photo_url, t.name as team_name, ps.red_cards as value
       FROM player_stats ps JOIN players p ON ps.player_id = p.id
       JOIN team_players tp ON p.id = tp.player_id AND tp.season_id = ps.season_id
       JOIN teams t ON tp.team_id = t.id 
-      WHERE ps.season_id = ${seasonCondition} AND ps.red_cards > 0 ORDER BY ps.red_cards DESC
+      WHERE ps.season_id = ${seasonCondition} AND ps.red_cards > 0 ORDER BY ps.red_cards DESC, p.name ASC
     `;
 
     const [globalRes, cardsRes, csRes, teamsRes, scorersRes, yellowsRes, redsRes] = await Promise.all([

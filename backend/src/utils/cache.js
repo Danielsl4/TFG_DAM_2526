@@ -1,89 +1,111 @@
 const Redis = require("ioredis");
 
 const redis = new Redis(process.env.REDIS_URL, {
-  maxRetriesPerRequest: null,
+  maxRetriesPerRequest: 1,
+  lazyConnect: true,
   connectTimeout: 5000,
-  reconnectOnError: () => true
+  retryStrategy(times) {
+    // Reintentar cada 2 segundos si falla
+    return 2000;
+  },
 });
 
+// Forzar intento de conexión al arrancar para ver el estado inmediatamente
+redis.connect().catch(() => {});
+
+// Evento de error: Se dispara cuando no puede conectar
 redis.on("error", (err) => {
-  console.warn("⚠️ Redis connection error:", err.message);
+  if (!global.redisErrorLogged) {
+    console.warn("\x1b[33m%s\x1b[0m", " AVISO: Redis no está disponible. El sistema funcionará en MODO RESILIENCIA (sin caché).");
+    console.error("   Detalle del error:", err.message);
+    global.redisErrorLogged = true;
+  }
+});
+
+// Evento de conexión: Se dispara cuando vuelve a estar online
+redis.on("connect", () => {
+  console.log("\x1b[32m%s\x1b[0m", " Redis conectado correctamente. Caché activada.");
+  global.redisErrorLogged = false;
 });
 
 /**
- * Función para invalidar TODA la caché de un partido (pública y de usuarios)
+ * Wrappers seguros para evitar que un fallo de Redis rompa la ejecución
  */
+const safeRedis = {
+  get: async (key) => {
+    try {
+      if (redis.status !== "ready") return null;
+      return await redis.get(key);
+    } catch (err) {
+      return null;
+    }
+  },
+  set: async (key, value, mode, duration) => {
+    try {
+      if (redis.status !== "ready") return;
+      if (mode && duration) {
+        await redis.set(key, value, mode, duration);
+      } else {
+        await redis.set(key, value);
+      }
+    } catch (err) {
+      // Silencioso para no ensuciar la consola en cada petición
+    }
+  },
+  del: async (key) => {
+    try {
+      if (redis.status !== "ready") return;
+      await redis.del(key);
+    } catch (err) {
+      // Silencioso
+    }
+  }
+};
+
 async function invalidateMatchCache(matchId) {
   try {
-    const db = require("../../db");
-    
-    // Obtenemos la temporada del partido para invalidar cachés específicas
-    const matchRes = await db.query("SELECT season_id FROM matches WHERE id = $1", [matchId]);
-    const seasonId = matchRes.rows[0]?.season_id;
+    if (redis.status === "ready") {
+        // Borrar datos específicos del partido
+        const matchKeys = await redis.keys(`match:${matchId}*`);
+        if (matchKeys.length > 0) await redis.del(matchKeys);
+        
+        // Borrar listados generales de partidos
+        await redis.del("all_matches");
+        await redis.del("matches:current");
 
-    // 1. Borrar listas de partidos globales y clasificaciones
-    await redis.del("all_matches");
-    await redis.del("matches:current");
-    await redis.del("standings");
-
-    // 2. Borrar cachés específicas de la temporada
-    if (seasonId) {
-      await redis.del(`matches:season:${seasonId}`);
-      await redis.del(`standings:${seasonId}`);
+        // Borrar CLASIFICACIONES (Standings) ya que han cambiado los puntos/goles
+        const standingsKeys = await redis.keys("standings*");
+        if (standingsKeys.length > 0) await redis.del(standingsKeys);
     }
-
-    // 3. Borrar inmediatamente el detalle del partido
-    await redis.del(`match:${matchId}`);
-    
-    // 4. Escanear y borrar cachés de usuarios (segmentadas)
-    let cursor = '0';
-    do {
-      // Borrar todas las listas cacheadas de usuarios
-      const [newCursor, userKeys] = await redis.scan(cursor, 'MATCH', 'matches:*user*', 'COUNT', 100);
-      if (userKeys.length > 0) {
-        await redis.del(...userKeys);
-      }
-
-      // Borrar todas las versiones cacheadas del detalle de este partido (ej: match:123:user:45)
-      const [, matchKeys] = await redis.scan(cursor, 'MATCH', `match:${matchId}*`, 'COUNT', 100);
-      if (matchKeys.length > 0) {
-        await redis.del(...matchKeys);
-      }
-      
-      cursor = newCursor;
-    } while (cursor !== '0');
   } catch (err) {
-    console.error("Error invalidando caché de partido:", err);
+    console.error("Error invalidando caché:", err.message);
   }
 }
 
-/**
- * Actualiza la marca de tiempo global de la última actividad administrativa
- */
 async function updateGlobalLastActivity() {
   try {
-    await redis.set("global_last_activity", Date.now());
+    if (redis.status === "ready") {
+      await redis.set("global_last_activity", Date.now());
+    }
   } catch (err) {
-    console.error("Error actualizando actividad global:", err);
+    console.error("Error actualizando actividad global:", err.message);
   }
 }
 
-/**
- * Obtiene la marca de tiempo global de la última actividad
- */
 async function getGlobalLastActivity() {
   try {
+    if (redis.status !== "ready") return null;
     return await redis.get("global_last_activity");
   } catch (err) {
-    console.error("Error obteniendo actividad global:", err);
     return null;
   }
 }
 
 module.exports = {
   redis,
+  safeRedis,
   invalidateMatchCache,
   updateGlobalLastActivity,
   getGlobalLastActivity,
-  CACHE_TTL_MS: 30 // Segundos para borrar la cache
+  CACHE_TTL_MS: 30
 };

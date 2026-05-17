@@ -82,7 +82,7 @@ router.post("/", verifyToken, verifyAdmin, async (req, res) => {
     await logAction(req.authData.id, 'Creación de temporada', 'season', newSeason.id, { 
       name: newSeason.name, 
       imported_from: import_from || null 
-    });
+    }, newSeason.id);
 
     res.status(201).json(newSeason);
   } catch (err) {
@@ -114,7 +114,7 @@ router.put("/:id", verifyToken, verifyAdmin, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ message: "Temporada no encontrada" });
 
     const updatedSeason = result.rows[0];
-    await logAction(req.authData.id, 'Actualización de temporada', 'season', id, { name: updatedSeason.name, season_id: id });
+    await logAction(req.authData.id, 'Actualización de temporada', 'season', id, { name: updatedSeason.name }, id);
     res.json(updatedSeason);
   } catch (err) {
     console.error(err);
@@ -131,7 +131,7 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
     const seasonName = seasonRes.rows[0].name;
 
     await db.query("DELETE FROM seasons WHERE id = $1", [id]);
-    await logAction(req.authData.id, 'Eliminación de temporada', 'season', id, { name: seasonName, season_id: id });
+    await logAction(req.authData.id, 'Eliminación de temporada', 'season', id, { name: seasonName }, id);
     res.json({ message: "Temporada eliminada correctamente" });
   } catch (err) {
     console.error(err);
@@ -186,9 +186,8 @@ router.post("/:id/import-structure", verifyToken, verifyAdmin, async (req, res) 
     // Auditoría
     await logAction(req.authData.id, 'Importación de estructura de temporada', 'season', newSeasonId, { 
       fromSeasonId, 
-      mode: 'grupos_equipos_y_plantillas',
-      season_id: newSeasonId
-    });
+      mode: 'grupos_equipos_y_plantillas'
+    }, newSeasonId);
 
     res.json({ 
       message: "Grupos y plantillas importados. Los equipos están listos para ser asignados a grupos.", 

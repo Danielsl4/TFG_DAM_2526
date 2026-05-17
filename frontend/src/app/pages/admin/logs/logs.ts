@@ -1,10 +1,11 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api-service';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { SeasonService } from '../../../services/season-service';
 
 @Component({
   selector: 'app-admin-logs',
@@ -16,12 +17,20 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 export class Logs implements OnInit {
   private apiService = inject(ApiService);
   private router = inject(Router);
+  private seasonService = inject(SeasonService);
 
   logs: any[] = [];
   total: number = 0;
   page: number = 1;
   limit: number = 20;
   loading: boolean = false;
+
+  constructor() {
+    effect(() => {
+      const sId = this.seasonService.currentSeasonId();
+      this.onFilter();
+    });
+  }
 
   // Filtros
   userSearch: string = '';
@@ -44,7 +53,8 @@ export class Logs implements OnInit {
 
   loadLogs() {
     this.loading = true;
-    this.apiService.getAdminLogs(this.page, this.limit, undefined, this.userSearch, this.dateSearch).subscribe({
+    const sId = this.seasonService.currentSeasonId();
+    this.apiService.getAdminLogs(this.page, this.limit, sId || undefined, this.userSearch, this.dateSearch).subscribe({
       next: (data) => {
         this.logs = data.logs;
         this.total = data.total;

@@ -47,7 +47,7 @@
     style="background-color: var(--bg-blanco-azulado);">
     <img [src]="player.photo_url || 'https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'" [alt]="player.name"
       class="player-photo-large mb-4" style="width: 100px; height: 100px; object-fit: contain;"
-      onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505577/tfg_futsal/general/fotogenericajugador.webp'">
+      onerror="this.src='/images/default-player.webp'">
     <h3 class="fw-normal mb-0 text-dark fs-4">{{ player.name }}</h3>
     @if (player.age !== undefined) {
     <span class="text-secondary opacity-75 d-block mt-1" style="font-size: 0.95rem;">{{ player.age }} años</span>
@@ -61,7 +61,7 @@
         @if (player.team_logo_url || player.team_logo || player.team?.logo_url) {
         <img [src]="player.team_logo_url || player.team_logo || player.team?.logo_url"
           [alt]="player.team_name || player.team?.name" width="30" height="30" style="object-fit: contain;"
-          onerror="this.src='https://res.cloudinary.com/dyxl1d54d/image/upload/v1777505576/tfg_futsal/general/logogenericoequipo.webp'">
+          onerror="this.src='/images/default-player.webp'">
         }
         <span class="fw-bold text-dark">{{ player.team_name || player.team?.name || 'Ver equipo' }}</span>
         <i class="bi bi-chevron-right text-muted small"></i>

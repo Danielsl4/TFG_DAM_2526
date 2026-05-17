@@ -10,12 +10,23 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 
 const secretKey = process.env.JWT_SECRET;
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
 
-// Configurar el rate limiter para evitar spam/fuerza bruta
+// Configuración de Nodemailer
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// Configurar el rate limiter: usa Redis si está disponible, si no, usa memoria local (evita caídas)
 const authLimiter = rateLimit({
-  store: new RedisStore({
+  // Si redis no está listo, no pasamos store (usa MemoryStore por defecto)
+  store: redis.status === "ready" ? new RedisStore({
     sendCommand: (...args) => redis.call(...args),
-  }),
+  }) : undefined,
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 10, // Límite de 10 intentos por IP cada 15 minutos
   message: { message: "Demasiados intentos. Por favor, inténtalo de nuevo en 15 minutos." },
@@ -51,10 +62,14 @@ router.post("/register", authLimiter, async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Generar clave de recuperación de emergencia
+    const recoveryKeyPlain = 'REC-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    const recoveryKeyHash = await bcrypt.hash(recoveryKeyPlain, 10);
+
     // Insert user
     const newUserResult = await db.query(
-      "INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, 'user') RETURNING id, username, email, role",
-      [username, email, hashedPassword],
+      "INSERT INTO users (username, email, password, role, recovery_key) VALUES ($1, $2, $3, 'user', $4) RETURNING id, username, email, role",
+      [username, email, hashedPassword, recoveryKeyHash],
     );
 
     const user = newUserResult.rows[0];
@@ -67,7 +82,6 @@ router.post("/register", authLimiter, async (req, res) => {
       [verificationToken, user.id]
     );
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
     const verifyLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
 
     const mailOptions = {
@@ -77,15 +91,21 @@ router.post("/register", authLimiter, async (req, res) => {
       text: `¡Hola ${username}!\n\nGracias por registrarte. Por favor, haz clic en el siguiente enlace para verificar tu cuenta y poder iniciar sesión:\n\n${verifyLink}\n\nIMPORTANTE: Tienes 24 horas para verificar tu cuenta. Si no lo haces en este plazo, tu cuenta será eliminada automáticamente por seguridad.\n\nSi no te has registrado, puedes ignorar este correo.`
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error al enviar el correo de verificación:", error);
-        // Aunque falle el correo, el usuario se ha creado
-      }
-    });
+    let emailSent = true;
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error("Error al enviar el correo de verificación:", error);
+      emailSent = false;
+    }
 
     res.status(201).json({
-      message: "Registro exitoso. Por favor, revisa tu correo para verificar tu cuenta.",
+      message: emailSent
+        ? "Registro exitoso. Por favor, revisa tu correo para verificar tu cuenta."
+        : "Registro exitoso, pero el servicio de correo no pudo enviar el mensaje de confirmación.",
+      emailSent,
+      verificationToken: emailSent ? null : verificationToken,
+      recoveryKey: recoveryKeyPlain,
       user: user
     });
 
@@ -151,14 +171,7 @@ router.post("/login", authLimiter, async (req, res) => {
   }
 });
 
-// Configuración de Nodemailer
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// --- LOGIN ---
 
 // Route: /forgot-password
 router.post("/forgot-password", authLimiter, async (req, res) => {
@@ -179,21 +192,20 @@ router.post("/forgot-password", authLimiter, async (req, res) => {
 
     // Generar token
     const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
     
     await db.query(
       "UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3",
       [token, expires, user.id]
     );
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
     const resetLink = `${frontendUrl}/reset-password?token=${token}`;
 
     const mailOptions = {
       from: process.env.EMAIL_USER || '"Soporte" <noreply@tfg.com>',
       to: email,
       subject: 'Recuperación de contraseña',
-      text: `Has solicitado recuperar tu contraseña. Haz clic en el siguiente enlace para restablecerla:\n\n${resetLink}\n\nSi no fuiste tú, ignora este correo. El enlace caducará en 15 minutos.`
+      text: `Has solicitado recuperar tu contraseña. Haz clic en el siguiente enlace para restablecerla:\n\n${resetLink}\n\nSi no fuiste tú, ignora este correo. El enlace caducará en 60 minutos.`
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
@@ -244,6 +256,50 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
+// Route: /reset-password-recovery
+router.post("/reset-password-recovery", authLimiter, async (req, res) => {
+  const { email, recoveryKey, newPassword } = req.body;
+
+  if (!email || !recoveryKey || !newPassword) {
+    return res.status(400).json({ message: "Email, clave de recuperación y nueva contraseña requeridos" });
+  }
+
+  try {
+    const result = await db.query(
+      "SELECT id, recovery_key FROM users WHERE LOWER(email) = LOWER($1)",
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Usuario no encontrado." });
+    }
+
+    const user = result.rows[0];
+
+    if (!user.recovery_key) {
+      return res.status(400).json({ message: "La clave de recuperación es incorrecta." });
+    }
+
+    const isMatch = await bcrypt.compare(recoveryKey.trim(), user.recovery_key);
+    if (!isMatch) {
+      return res.status(400).json({ message: "La clave de recuperación es incorrecta." });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Actualizar contraseña
+    await db.query(
+      "UPDATE users SET password = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2",
+      [hashedPassword, user.id]
+    );
+
+    return res.json({ message: "Contraseña restablecida correctamente con tu clave de emergencia." });
+  } catch (error) {
+    console.error("Error al restablecer contraseña con clave de recuperación:", error);
+    return res.status(500).json({ message: "Error en el servidor al restablecer contraseña." });
+  }
+});
+
 // Route: /resend-verification
 router.post("/resend-verification", authLimiter, async (req, res) => {
   const { email, username } = req.body;
@@ -253,9 +309,10 @@ router.post("/resend-verification", authLimiter, async (req, res) => {
   }
 
   try {
+    const identifier = email || username;
     const result = await db.query(
-      "SELECT id, username, email, is_verified FROM users WHERE LOWER(email) = LOWER($1) OR unaccent(username) ILIKE unaccent($2)",
-      [email, username]
+      "SELECT id, username, email, is_verified FROM users WHERE LOWER(email) = LOWER($1) OR unaccent(username) ILIKE unaccent($1)",
+      [identifier]
     );
     
     if (result.rows.length === 0) {
@@ -277,7 +334,6 @@ router.post("/resend-verification", authLimiter, async (req, res) => {
       [verificationToken, user.id]
     );
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
     const verifyLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
 
     const mailOptions = {
@@ -287,13 +343,25 @@ router.post("/resend-verification", authLimiter, async (req, res) => {
       text: `¡Hola ${user.username}!\n\nHas solicitado reenviar el correo de verificación. Por favor, haz clic en el siguiente enlace para verificar tu cuenta:\n\n${verifyLink}\n\nIMPORTANTE: Recuerda que tienes un plazo de 24 horas desde la creación de la cuenta para verificarla, de lo contrario será eliminada automáticamente.\n\nSi no has solicitado esto, puedes ignorar este correo.`
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error al enviar el correo de verificación:", error);
-        return res.status(500).json({ message: "Error al enviar el correo. Inténtalo más tarde." });
-      } else {
-        return res.json({ message: "Se ha reenviado el correo de verificación. Por favor, revisa tu bandeja de entrada." });
-      }
+    let emailSent = true;
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error("Error al enviar el correo de verificación:", error);
+      emailSent = false;
+    }
+
+    if (!emailSent) {
+      return res.json({
+        message: "El servicio de correo no pudo enviar el mensaje, pero puedes activar tu cuenta ahora mismo.",
+        emailSent: false,
+        verificationToken
+      });
+    }
+
+    return res.json({
+      message: "Se ha reenviado el correo de verificación. Por favor, revisa tu bandeja de entrada.",
+      emailSent: true
     });
 
   } catch (error) {

@@ -146,6 +146,28 @@
   box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
 }
 
+.btn-icon.delete-permanent {
+  background: rgba(183, 28, 28, 0.1);
+  color: #b71c1c;
+}
+
+.btn-icon.delete-permanent:hover {
+  background: #b71c1c;
+  color: white;
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(183, 28, 28, 0.5);
+}
+
+.mini-photo-sq {
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 8px !important;
+  object-fit: contain !important;
+  background: #fff;
+  border: 1px solid #eee;
+  padding: 4px;
+}
+
 .btn-primary {
   background: var(--secundario);
   color: white;
