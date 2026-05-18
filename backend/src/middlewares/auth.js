@@ -20,7 +20,7 @@ function verifyToken(req, res, next) {
   if (bearerToken) {
     jwt.verify(bearerToken, secretKey, (err, authData) => {
       if (err) {
-        res.status(401).json({ message: "Sesión inválida o expirada" });
+        res.status(401).json({ code: "TOKEN_EXPIRED", message: "Sesión inválida o expirada" });
       } else {
         req.authData = authData;
         req.token = bearerToken;
@@ -28,7 +28,7 @@ function verifyToken(req, res, next) {
       }
     });
   } else {
-    res.status(401).json({ message: "No se proporcionó un token de autenticación" });
+    res.status(401).json({ code: "TOKEN_MISSING", message: "No se proporcionó un token de autenticación" });
   }
 }
 

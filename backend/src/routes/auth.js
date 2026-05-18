@@ -131,7 +131,7 @@ router.post("/login", authLimiter, async (req, res) => {
     const user = result.rows[0];
 
     if (!user) {
-      return res.status(401).json({ message: "Invalid username or password" });
+      return res.status(401).json({ code: "INVALID_CREDENTIALS", message: "Usuario o contraseña incorrectos" });
     }
 
     if (user.is_active === false) {
@@ -148,7 +148,7 @@ router.post("/login", authLimiter, async (req, res) => {
     // Validate password
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      return res.status(401).json({ message: "Invalid username or password" });
+      return res.status(401).json({ code: "INVALID_CREDENTIALS", message: "Usuario o contraseña incorrectos" });
     }
 
     // Generate token

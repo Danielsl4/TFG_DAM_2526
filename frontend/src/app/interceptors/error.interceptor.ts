@@ -21,11 +21,18 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         errorTitle = 'Sin conexión';
         errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión a internet o intenta más tarde.';
       } else if (error.status === 401) {
-        errorTitle = 'Sesión expirada';
-        errorMessage = 'Tu sesión ha caducado. Por favor, inicia sesión de nuevo.';
-        
-        // Limpiamos sesión usando el servicio centralizado
-        authService.logout();
+        const errorCode = error.error?.code;
+
+        if (errorCode === 'INVALID_CREDENTIALS') {
+          // Retornar directamente para que solo se muestre el error inline en el formulario
+          return throwError(() => error);
+        } else {
+          errorTitle = 'Sesión expirada';
+          errorMessage = 'Tu sesión ha caducado. Por favor, inicia sesión de nuevo.';
+          
+          // Limpiamos sesión usando el servicio centralizado
+          authService.logout();
+        }
       } else if (error.status === 403) {
         errorTitle = 'Acceso denegado';
         errorMessage = 'No tienes permisos suficientes para realizar esta acción.';
